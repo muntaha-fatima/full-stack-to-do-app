@@ -18,11 +18,9 @@ import {
   PanelLeft,
   PlusIcon,
   FilterIcon,
-  CalendarIcon,
   FlagIcon,
   CircleIcon,
   CheckCircleIcon,
-  CircleDashedIcon,
   TimerIcon
 } from 'lucide-react';
 
