@@ -9,24 +9,22 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatDate } from '@/lib/date-utils';
 import { cn } from '@/lib/utils';
-import { 
-  CalendarIcon, 
-  FlagIcon, 
-  CircleIcon, 
+import {
+  CalendarIcon,
+  FlagIcon,
+  CircleIcon,
   CheckCircleIcon,
-  CircleDashedIcon,
   TimerIcon
 } from 'lucide-react';
 
 interface TaskCardProps {
   task: Task;
-  onUpdate: (id: number, data: Partial<Task>) => void;
   onDelete: (id: number) => void;
   onToggleComplete: (task: Task) => void;
   onEdit: (task: Task) => void;
 }
 
-export function TaskCard({ task, onUpdate, onDelete, onToggleComplete, onEdit }: TaskCardProps) {
+export function TaskCard({ task, onDelete, onToggleComplete, onEdit }: TaskCardProps) {
   const handleToggleComplete = () => {
     onToggleComplete(task);
   };
@@ -82,7 +80,7 @@ export function TaskCard({ task, onUpdate, onDelete, onToggleComplete, onEdit }:
   };
 
   return (
-    <Card 
+    <Card
       className={cn(
         "flex flex-col h-full border-0 shadow-sm rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md",
         "border-l-4",
@@ -99,7 +97,7 @@ export function TaskCard({ task, onUpdate, onDelete, onToggleComplete, onEdit }:
               className="mt-0.5"
             />
             <div className="flex-1 min-w-0">
-              <h3 
+              <h3
                 className={cn(
                   "font-semibold text-base leading-tight mb-1 truncate",
                   task.completed && "line-through text-muted-foreground"
@@ -107,7 +105,7 @@ export function TaskCard({ task, onUpdate, onDelete, onToggleComplete, onEdit }:
               >
                 {task.title}
               </h3>
-              
+
               {task.description && (
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {task.description}
@@ -115,7 +113,7 @@ export function TaskCard({ task, onUpdate, onDelete, onToggleComplete, onEdit }:
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -138,7 +136,7 @@ export function TaskCard({ task, onUpdate, onDelete, onToggleComplete, onEdit }:
                 <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
               </svg>
             </Button>
-            
+
             <Button
               variant="ghost"
               size="icon"
@@ -165,27 +163,27 @@ export function TaskCard({ task, onUpdate, onDelete, onToggleComplete, onEdit }:
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="pb-0 px-4 pt-0">
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <Badge variant={getStatusVariant(task.status)} className="text-xs">
             <span className="mr-1">{getStatusIcon(task.status)}</span>
             {task.status.replace('_', ' ')}
           </Badge>
-          
+
           <Badge variant="outline" className="text-xs capitalize">
             <FlagIcon className="h-3 w-3 mr-1" />
             {task.priority}
           </Badge>
         </div>
-        
+
         {task.due_date && (
           <div className="flex items-center text-sm text-muted-foreground mt-1">
             <CalendarIcon className="h-4 w-4 mr-1" />
             <span>Due: {formatDate(task.due_date)}</span>
           </div>
         )}
-        
+
         {task.tags && task.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {task.tags.map((tag, index) => (
@@ -196,7 +194,7 @@ export function TaskCard({ task, onUpdate, onDelete, onToggleComplete, onEdit }:
           </div>
         )}
       </CardContent>
-      
+
       <CardFooter className="px-4 py-3 mt-auto pt-3 border-t border-border/40">
         <div className="text-xs text-muted-foreground">
           Created: {formatDate(task.created_at)}

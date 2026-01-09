@@ -357,7 +357,6 @@ export default function Home() {
                     >
                       <TaskCard
                         task={task}
-                        onUpdate={handleUpdateTask}
                         onDelete={handleDeleteTask}
                         onToggleComplete={handleToggleComplete}
                         onEdit={handleEditTask}
