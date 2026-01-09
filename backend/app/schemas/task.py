@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.task import TaskPriority, TaskStatus
+from app.models.task import RecurrencePattern, TaskPriority, TaskStatus
 
 
 class TaskBase(BaseModel):
@@ -18,6 +18,11 @@ class TaskBase(BaseModel):
     priority: TaskPriority = Field(default=TaskPriority.MEDIUM, description="Task priority")
     tags: list[str] | None = Field(default=None, description="Task tags")
     due_date: datetime | None = Field(None, description="Task due date")
+    reminder_time: datetime | None = Field(None, description="Task reminder time")
+    recurrence_pattern: RecurrencePattern | None = Field(None, description="Recurrence pattern")
+    recurrence_interval: int | None = Field(None, description="Recurrence interval (e.g., every 2 weeks)")
+    recurrence_end_date: datetime | None = Field(None, description="Recurrence end date")
+    parent_task_id: int | None = Field(None, description="Parent task ID for subtasks")
 
 
 class TaskCreate(TaskBase):
@@ -36,6 +41,11 @@ class TaskUpdate(BaseModel):
     completed: bool | None = Field(None, description="Task completion status")
     tags: list[str] | None = Field(None, description="Task tags")
     due_date: datetime | None = Field(None, description="Task due date")
+    reminder_time: datetime | None = Field(None, description="Task reminder time")
+    recurrence_pattern: RecurrencePattern | None = Field(None, description="Recurrence pattern")
+    recurrence_interval: int | None = Field(None, description="Recurrence interval (e.g., every 2 weeks)")
+    recurrence_end_date: datetime | None = Field(None, description="Recurrence end date")
+    parent_task_id: int | None = Field(None, description="Parent task ID for subtasks")
 
 
 class TaskInDB(TaskBase):
@@ -44,6 +54,7 @@ class TaskInDB(TaskBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    owner_id: int
     completed: bool
     created_at: datetime
     updated_at: datetime

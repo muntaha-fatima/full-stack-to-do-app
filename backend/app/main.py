@@ -39,15 +39,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# CORS middleware - Allow frontend origin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],  # Allow frontend origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    # Allow all headers including authorization
+    allow_origin_regex="https?://(localhost|127\\.0\\.0\\.1)(:[0-9]+)?",
+)
+
 
 # Trusted host middleware (security)
 if settings.ENVIRONMENT == "production":

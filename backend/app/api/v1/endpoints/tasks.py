@@ -8,8 +8,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models.task import Task, TaskPriority, TaskStatus
+from app.models.user import User
 from app.schemas.task import TaskCreate, TaskListResponse, TaskResponse, TaskUpdate
 
 router = APIRouter()
@@ -17,6 +19,7 @@ router = APIRouter()
 
 @router.get("/", response_model=TaskListResponse)
 async def list_tasks(
+    current_user: User = Depends(get_current_user),
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(20, ge=1, le=100, description="Number of records to return"),
     status: TaskStatus | None = Query(None, description="Filter by status"),
@@ -26,9 +29,10 @@ async def list_tasks(
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     """
-    Retrieve a paginated list of tasks.
+    Retrieve a paginated list of tasks for the current user.
 
     Args:
+        current_user: Authenticated user
         skip: Number of records to skip (for pagination)
         limit: Maximum number of records to return
         status: Optional status filter
@@ -41,7 +45,7 @@ async def list_tasks(
         Paginated list of tasks with metadata
     """
     # Build query
-    query = select(Task)
+    query = select(Task).where(Task.owner_id == current_user.id)
 
     # Apply filters
     if status is not None:
@@ -83,19 +87,21 @@ async def list_tasks(
 @router.post("/", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 async def create_task(
     task_in: TaskCreate,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     """
-    Create a new task.
+    Create a new task for the current user.
 
     Args:
         task_in: Task creation data
+        current_user: Authenticated user
         db: Database session
 
     Returns:
         Created task
     """
-    task = Task(**task_in.model_dump())
+    task = Task(**task_in.model_dump(), owner_id=current_user.id)
     db.add(task)
     await db.commit()
     await db.refresh(task)
@@ -105,28 +111,30 @@ async def create_task(
 @router.get("/{task_id}", response_model=TaskResponse)
 async def get_task(
     task_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     """
-    Get a specific task by ID.
+    Get a specific task by ID for the current user.
 
     Args:
         task_id: Task ID
+        current_user: Authenticated user
         db: Database session
 
     Returns:
         Task details
 
     Raises:
-        HTTPException: If task not found
+        HTTPException: If task not found or not owned by user
     """
-    result = await db.execute(select(Task).where(Task.id == task_id))
+    result = await db.execute(select(Task).where(Task.id == task_id).where(Task.owner_id == current_user.id))
     task = result.scalar_one_or_none()
 
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found",
+            detail=f"Task with id {task_id} not found or not owned by user",
         )
 
     return task
@@ -136,29 +144,31 @@ async def get_task(
 async def update_task(
     task_id: int,
     task_in: TaskUpdate,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     """
-    Update a task (partial update).
+    Update a task (partial update) for the current user.
 
     Args:
         task_id: Task ID
         task_in: Task update data (only provided fields will be updated)
+        current_user: Authenticated user
         db: Database session
 
     Returns:
         Updated task
 
     Raises:
-        HTTPException: If task not found
+        HTTPException: If task not found or not owned by user
     """
-    result = await db.execute(select(Task).where(Task.id == task_id))
+    result = await db.execute(select(Task).where(Task.id == task_id).where(Task.owner_id == current_user.id))
     task = result.scalar_one_or_none()
 
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found",
+            detail=f"Task with id {task_id} not found or not owned by user",
         )
 
     # Update only provided fields
@@ -174,25 +184,27 @@ async def update_task(
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(
     task_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """
-    Delete a task.
+    Delete a task for the current user.
 
     Args:
         task_id: Task ID
+        current_user: Authenticated user
         db: Database session
 
     Raises:
-        HTTPException: If task not found
+        HTTPException: If task not found or not owned by user
     """
-    result = await db.execute(select(Task).where(Task.id == task_id))
+    result = await db.execute(select(Task).where(Task.id == task_id).where(Task.owner_id == current_user.id))
     task = result.scalar_one_or_none()
 
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found",
+            detail=f"Task with id {task_id} not found or not owned by user",
         )
 
     await db.delete(task)

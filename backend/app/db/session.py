@@ -10,6 +10,11 @@ from sqlalchemy.orm import declarative_base
 from app.core.config import settings
 
 # Create async engine
+# For SQLite, we need to handle some differences from PostgreSQL
+connect_args = {}
+if str(settings.DATABASE_URL).startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
 engine = create_async_engine(
     str(settings.DATABASE_URL),
     echo=settings.ENVIRONMENT == "development",
@@ -17,6 +22,7 @@ engine = create_async_engine(
     pool_pre_ping=True,
     pool_size=5,
     max_overflow=10,
+    connect_args=connect_args,  # Needed for SQLite
 )
 
 # Create async session factory
@@ -57,7 +63,7 @@ async def init_db() -> None:
     """
     async with engine.begin() as conn:
         # Import all models here to ensure they are registered with Base
-        from app.models import task  # noqa: F401
+        from app.models import analytics, category, collaboration, task, user  # noqa: F401
 
         # Create tables (only for development)
         if settings.ENVIRONMENT == "development":

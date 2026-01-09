@@ -1,5 +1,5 @@
 /**
- * Home page - Task list view.
+ * Home page - Task list view with improved UX.
  */
 
 'use client';
@@ -15,12 +15,23 @@ import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/modal';
 import { EmptyState } from '@/components/empty-state';
 import { TaskListSkeleton } from '@/components/loading-skeleton';
-import { DarkModeToggle } from '@/components/dark-mode-toggle';
+import {
+  PanelLeft,
+  PlusIcon,
+  FilterIcon,
+  CalendarIcon,
+  FlagIcon,
+  CircleIcon,
+  CheckCircleIcon,
+  CircleDashedIcon,
+  TimerIcon
+} from 'lucide-react';
 
 export default function Home() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const queryClient = useQueryClient();
 
   // Fetch tasks
@@ -168,139 +179,245 @@ export default function Home() {
     setEditingTask(task);
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  // Get status icon
+  const getStatusIcon = (status: TaskStatus) => {
+    switch (status) {
+      case 'todo':
+        return <CircleIcon className="h-4 w-4 text-gray-500" />;
+      case 'in_progress':
+        return <TimerIcon className="h-4 w-4 text-blue-500" />;
+      case 'completed':
+        return <CheckCircleIcon className="h-4 w-4 text-green-500" />;
+      default:
+        return <CircleIcon className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-gradient-professional relative">
-      {/* Subtle pattern overlay for texture */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAgNHYyaDJ2LTJoLTJ6bS0yIDJ2Mmgydi0yaC0yem0wLTR2Mmgydi0yaC0yem0yLTJ2LTJoLTJ2Mmgyem0wLTR2LTJoLTJ2Mmgyem0yIDJ2LTJoLTJ2Mmgyem0wIDR2LTJoLTJ2Mmgyem0yLTJ2Mmgydi0yaC0yem0wLTR2Mmgydi0yaC0yem0tMiAydi0yaC0ydjJoMnptMC00di0yaC0ydjJoMnptMiAydi0yaC0ydjJoMnptMCA0di0yaC0ydjJoMnptMi0ydjJoMnYtMmgtMnptMC00djJoMnYtMmgtMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-40"></div>
-
-      <div className="relative mx-auto max-w-7xl px-lg py-2xl sm:px-xl lg:px-2xl">
-        {/* Header */}
-        <div className="mb-2xl flex items-start justify-between gap-lg">
-          <div>
-            <h1 className="text-4xl font-bold leading-tight text-foreground drop-shadow-sm">Todo App</h1>
-            
-            <p className="mt-sm text-base leading-normal text-muted-foreground">
-              Manage your tasks efficiently with our production-ready todo application
-            </p>
-          </div>
-          <DarkModeToggle />
-        </div>
-
-        {/* Actions */}
-        <div className="mb-xl flex flex-col gap-lg sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex gap-sm flex-wrap">
-            <Button
-              variant={statusFilter === 'all' ? 'primary' : 'secondary'}
-              onClick={() => setStatusFilter('all')}
-            >
-              All
-            </Button>
-            <Button
-              variant={statusFilter === 'todo' ? 'primary' : 'secondary'}
-              onClick={() => setStatusFilter('todo')}
-            >
-              Todo
-            </Button>
-            <Button
-              variant={statusFilter === 'in_progress' ? 'primary' : 'secondary'}
-              onClick={() => setStatusFilter('in_progress')}
-            >
-              In Progress
-            </Button>
-            <Button
-              variant={statusFilter === 'completed' ? 'primary' : 'secondary'}
-              onClick={() => setStatusFilter('completed')}
-            >
-              Completed
-            </Button>
+    <div className="min-h-screen bg-background">
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-10 w-64 bg-card border-r border-border transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="h-full flex flex-col">
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-foreground">Todo App</h1>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="lg:hidden"
+              >
+                <PanelLeft className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
 
-          <Button variant="primary" onClick={() => setIsFormOpen(true)}>
-            + New Task
-          </Button>
-        </div>
+          <div className="p-4">
+            <h2 className="text-lg font-semibold mb-4">Filters</h2>
 
-        {/* Create Task Modal */}
+            <div className="space-y-2">
+              <Button
+                variant={statusFilter === 'all' ? 'secondary' : 'ghost'}
+                className="w-full justify-start"
+                onClick={() => setStatusFilter('all')}
+              >
+                <FilterIcon className="h-4 w-4 mr-2" />
+                All Tasks
+              </Button>
+              <Button
+                variant={statusFilter === 'todo' ? 'secondary' : 'ghost'}
+                className="w-full justify-start"
+                onClick={() => setStatusFilter('todo')}
+              >
+                {getStatusIcon('todo')}
+                <span className="ml-2">To Do</span>
+              </Button>
+              <Button
+                variant={statusFilter === 'in_progress' ? 'secondary' : 'ghost'}
+                className="w-full justify-start"
+                onClick={() => setStatusFilter('in_progress')}
+              >
+                {getStatusIcon('in_progress')}
+                <span className="ml-2">In Progress</span>
+              </Button>
+              <Button
+                variant={statusFilter === 'completed' ? 'secondary' : 'ghost'}
+                className="w-full justify-start"
+                onClick={() => setStatusFilter('completed')}
+              >
+                {getStatusIcon('completed')}
+                <span className="ml-2">Completed</span>
+              </Button>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="text-sm font-medium mb-2">Priority</h3>
+              <div className="space-y-1">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                >
+                  <FlagIcon className="h-4 w-4 mr-2 text-red-500" />
+                  <span className="text-red-500">High</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                >
+                  <FlagIcon className="h-4 w-4 mr-2 text-yellow-500" />
+                  <span className="text-yellow-500">Medium</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                >
+                  <FlagIcon className="h-4 w-4 mr-2 text-green-500" />
+                  <span className="text-green-500">Low</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className={`lg:pl-64 transition-all duration-300 ${sidebarOpen ? 'lg:pl-64' : ''}`}>
+        <div className="p-4 lg:p-6">
+          {/* Header */}
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="mr-2 lg:hidden"
+              >
+                <PanelLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-2xl font-bold text-foreground">Tasks</h1>
+            </div>
+
+            <Button
+              variant="default"
+              onClick={() => setIsFormOpen(true)}
+              className="flex items-center"
+            >
+              <PlusIcon className="h-4 w-4 mr-2" />
+              New Task
+            </Button>
+          </div>
+
+          {/* Stats Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-card p-4 rounded-lg border border-border">
+              <div className="text-2xl font-bold">12</div>
+              <div className="text-sm text-muted-foreground">Total Tasks</div>
+            </div>
+            <div className="bg-card p-4 rounded-lg border border-border">
+              <div className="text-2xl font-bold">5</div>
+              <div className="text-sm text-muted-foreground">To Do</div>
+            </div>
+            <div className="bg-card p-4 rounded-lg border border-border">
+              <div className="text-2xl font-bold">4</div>
+              <div className="text-sm text-muted-foreground">In Progress</div>
+            </div>
+            <div className="bg-card p-4 rounded-lg border border-border">
+              <div className="text-2xl font-bold">3</div>
+              <div className="text-sm text-muted-foreground">Completed</div>
+            </div>
+          </div>
+
+          {/* Task List */}
+          {isLoading && <TaskListSkeleton count={6} />}
+
+          {error && (
+            <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4">
+              <p className="text-destructive">Error loading tasks. Please try again.</p>
+            </div>
+          )}
+
+          {data && (
+            <>
+              {data.data.length === 0 ? (
+                <EmptyState onAddTask={() => setIsFormOpen(true)} />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                  {data.data.map((task, index) => (
+                    <div
+                      key={task.id}
+                      style={{
+                        animationDelay: `${index * 50}ms`,
+                      }}
+                      className="animate-fadeIn"
+                    >
+                      <TaskCard
+                        task={task}
+                        onUpdate={handleUpdateTask}
+                        onDelete={handleDeleteTask}
+                        onToggleComplete={handleToggleComplete}
+                        onEdit={handleEditTask}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Pagination Info */}
+              {data.meta.total > 0 && (
+                <div className="mt-6 text-center text-sm text-muted-foreground">
+                  Showing {data.data.length} of {data.meta.total} tasks
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </main>
+
+      {/* Create Task Modal */}
+      <Modal
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        title="Create New Task"
+        size="lg"
+      >
+        <TaskForm
+          onSubmit={handleCreateTask}
+          onCancel={() => setIsFormOpen(false)}
+          isSubmitting={createMutation.isPending}
+        />
+      </Modal>
+
+      {/* Edit Task Modal */}
+      {editingTask && (
         <Modal
-          isOpen={isFormOpen}
-          onClose={() => setIsFormOpen(false)}
-          title="Create New Task"
+          isOpen={!!editingTask}
+          onClose={() => setEditingTask(null)}
+          title="Edit Task"
           size="lg"
         >
           <TaskForm
-            onSubmit={handleCreateTask}
-            onCancel={() => setIsFormOpen(false)}
-            isSubmitting={createMutation.isPending}
+            onSubmit={(data) => handleUpdateTask(editingTask.id, data)}
+            onCancel={() => setEditingTask(null)}
+            isSubmitting={updateMutation.isPending}
+            defaultValues={{
+              title: editingTask.title,
+              description: editingTask.description || '',
+              status: editingTask.status,
+              priority: editingTask.priority,
+              due_date: editingTask.due_date || '',
+              tags: editingTask.tags || [],
+            }}
           />
         </Modal>
-
-        {/* Edit Task Modal */}
-        {editingTask && (
-          <Modal
-            isOpen={!!editingTask}
-            onClose={() => setEditingTask(null)}
-            title="Edit Task"
-            size="lg"
-          >
-            <TaskForm
-              onSubmit={(data) => handleUpdateTask(editingTask.id, data)}
-              onCancel={() => setEditingTask(null)}
-              isSubmitting={updateMutation.isPending}
-              defaultValues={{
-                title: editingTask.title,
-                description: editingTask.description || '',
-                status: editingTask.status,
-                priority: editingTask.priority,
-                due_date: editingTask.due_date || '',
-                tags: editingTask.tags || [],
-              }}
-            />
-          </Modal>
-        )}
-
-        {/* Task List */}
-        {isLoading && <TaskListSkeleton count={6} />}
-
-        {error && (
-          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-lg">
-            <p className="text-base leading-normal text-destructive">Error loading tasks. Please try again.</p>
-          </div>
-        )}
-
-        {data && (
-          <>
-            {data.data.length === 0 ? (
-              <EmptyState onAddTask={() => setIsFormOpen(true)} />
-            ) : (
-              <div className="grid gap-lg sm:grid-cols-2 lg:grid-cols-3">
-                {data.data.map((task, index) => (
-                  <div
-                    key={task.id}
-                    style={{
-                      animationDelay: `${index * 50}ms`,
-                    }}
-                  >
-                    <TaskCard
-                      task={task}
-                      onUpdate={handleUpdateTask}
-                      onDelete={handleDeleteTask}
-                      onToggleComplete={handleToggleComplete}
-                      onEdit={handleEditTask}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Pagination Info */}
-            {data.meta.total > 0 && (
-              <div className="mt-xl text-center text-sm leading-tight text-muted-foreground">
-                Showing {data.data.length} of {data.meta.total} tasks
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </main>
+      )}
+    </div>
   );
 }
