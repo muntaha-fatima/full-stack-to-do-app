@@ -1,7 +1,6 @@
 /**
  * Home page - Task list view with improved UX.
  */
-
 'use client';
 
 import { useState } from 'react';
@@ -51,7 +50,7 @@ export default function Home() {
       // Snapshot previous value
       const previousTasks = queryClient.getQueryData(['tasks', statusFilter]);
 
-      // Optimistically update
+    // Optimistically update
       queryClient.setQueryData(['tasks', statusFilter], (old: any) => {
         if (!old) return old;
         const optimisticTask: Task = {
