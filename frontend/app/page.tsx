@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { getTasks, createTask, updateTask, deleteTask } from '@/lib/tasks';
-import type { Task, TaskCreate, TaskStatus } from '@/types/task';
+import type { Task, TaskCreate, TaskListResponse, TaskStatus } from '@/types/task';
 import { TaskCard } from '@/components/task-card';
 import { TaskForm } from '@/components/task-form';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,7 @@ export default function Home() {
   const queryClient = useQueryClient();
 
   // Fetch tasks
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<TaskListResponse>({
     queryKey: ['tasks', statusFilter],
     queryFn: () =>
       getTasks(statusFilter !== 'all' ? { status: statusFilter } : undefined),
@@ -48,10 +48,10 @@ export default function Home() {
       await queryClient.cancelQueries({ queryKey: ['tasks'] });
 
       // Snapshot previous value
-      const previousTasks = queryClient.getQueryData(['tasks', statusFilter]);
+      const previousTasks = queryClient.getQueryData<TaskListResponse>(['tasks', statusFilter]);
 
-    // Optimistically update
-      queryClient.setQueryData(['tasks', statusFilter], (old: any) => {
+      // Optimistically update
+      queryClient.setQueryData<TaskListResponse>(['tasks', statusFilter], (old) => {
         if (!old) return old;
         const optimisticTask: Task = {
           id: Date.now(), // Temporary ID
@@ -95,9 +95,9 @@ export default function Home() {
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: ['tasks'] });
 
-      const previousTasks = queryClient.getQueryData(['tasks', statusFilter]);
+      const previousTasks = queryClient.getQueryData<TaskListResponse>(['tasks', statusFilter]);
 
-      queryClient.setQueryData(['tasks', statusFilter], (old: any) => {
+      queryClient.setQueryData<TaskListResponse>(['tasks', statusFilter], (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -128,9 +128,9 @@ export default function Home() {
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: ['tasks'] });
 
-      const previousTasks = queryClient.getQueryData(['tasks', statusFilter]);
+      const previousTasks = queryClient.getQueryData<TaskListResponse>(['tasks', statusFilter]);
 
-      queryClient.setQueryData(['tasks', statusFilter], (old: any) => {
+      queryClient.setQueryData<TaskListResponse>(['tasks', statusFilter], (old) => {
         if (!old) return old;
         return {
           ...old,

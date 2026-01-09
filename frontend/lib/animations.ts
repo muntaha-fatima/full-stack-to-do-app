@@ -428,14 +428,14 @@ export const REFLOW_PROPERTIES = ['width', 'height', 'top', 'left', 'margin', 'p
  * Check if a property is GPU-accelerated
  */
 export function isGPUAccelerated(property: string): boolean {
-  return GPU_ACCELERATED_PROPERTIES.includes(property as any);
+  return GPU_ACCELERATED_PROPERTIES.some((gpuProp) => gpuProp === property);
 }
 
 /**
  * Check if a property causes reflow
  */
 export function causesReflow(property: string): boolean {
-  return REFLOW_PROPERTIES.includes(property as any);
+  return REFLOW_PROPERTIES.some((reflowProp) => reflowProp === property);
 }
 
 /**
