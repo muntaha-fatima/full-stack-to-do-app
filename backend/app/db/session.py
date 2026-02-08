@@ -56,6 +56,10 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             await session.close()
 
 
+# Alias for backward compatibility
+get_async_db = get_db
+
+
 async def init_db() -> None:
     """
     Initialize database - create tables if they don't exist.
@@ -63,7 +67,19 @@ async def init_db() -> None:
     """
     async with engine.begin() as conn:
         # Import all models here to ensure they are registered with Base
-        from app.models import analytics, category, collaboration, task, user  # noqa: F401
+        from app.models import (  # noqa: F401
+            analytics,
+            category,
+            collaboration,
+            login_history,
+            password_reset_token,
+            refresh_token,
+            task,
+            user,
+            verification_token,
+            conversation,  # Add the missing conversation model
+            message         # Add the missing message model
+        )
 
         # Create tables (only for development)
         if settings.ENVIRONMENT == "development":

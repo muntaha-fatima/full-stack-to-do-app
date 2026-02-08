@@ -70,10 +70,10 @@ async def get_productivity_insights(
     # Calculate weekly insights
     weekly_insights = []
     current_week_start = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    
+
     while current_week_start < end_date:
         week_end = current_week_start + timedelta(days=7)
-        
+
         week_total_result = await db.execute(
             select(func.count(Task.id)).where(
                 Task.owner_id == current_user.id,
@@ -107,13 +107,13 @@ async def get_productivity_insights(
     # Calculate monthly insights
     monthly_insights = []
     current_month_start = start_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    
+
     while current_month_start < end_date:
         if current_month_start.month == 12:
             month_end = current_month_start.replace(year=current_month_start.year + 1, month=1, day=1)
         else:
             month_end = current_month_start.replace(month=current_month_start.month + 1, day=1)
-        
+
         month_total_result = await db.execute(
             select(func.count(Task.id)).where(
                 Task.owner_id == current_user.id,
@@ -243,11 +243,16 @@ async def create_user_activity(
     Returns:
         Created activity
     """
+    activity_data = activity_in.model_dump()
+    # Rename metadata to metadata_json to match the model
+    if 'metadata' in activity_data:
+        activity_data['metadata_json'] = activity_data.pop('metadata')
+
     activity = UserActivity(
-        **activity_in.model_dump(),
+        **activity_data,
         user_id=current_user.id
     )
-    
+
     db.add(activity)
     await db.commit()
     await db.refresh(activity)
@@ -345,7 +350,7 @@ async def create_productivity_metric(
         **metric_in.model_dump(),
         user_id=current_user.id
     )
-    
+
     db.add(metric)
     await db.commit()
     await db.refresh(metric)

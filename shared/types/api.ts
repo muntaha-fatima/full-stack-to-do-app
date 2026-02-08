@@ -2,7 +2,7 @@
  * Shared API types and constants.
  */
 
-export const API_VERSION = 'v1';
+export const API_VERSION = 'v1'; // Note: Backend API is mounted at /api, not /api/v1
 
 export const API_ENDPOINTS = {
   TASKS: '/tasks',

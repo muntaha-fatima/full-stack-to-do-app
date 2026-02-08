@@ -1,8 +1,9 @@
 /**
- * API client configuration and utilities.
+ * Enhanced API client configuration with improved security and token management.
  */
 
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { getRefreshToken, getToken as getStoredToken, saveToken, clearTokens } from './auth-storage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
@@ -10,11 +11,12 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
  * Create axios instance with default configuration.
  */
 const apiClient: AxiosInstance = axios.create({
-  baseURL: `${API_URL}/api/v1`,
-  timeout: 10000,
+  baseURL: API_URL,
+  timeout: 15000, // Increased timeout
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Include credentials (cookies) in requests
 });
 
 /**
@@ -23,13 +25,21 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // Add auth token if available
-    const token = localStorage.getItem('access_token');
+    const token = getStoredToken(); // Use the function from auth-storage instead of direct localStorage access
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Log request for debugging
+    console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
+      headers: config.headers,
+      data: config.data
+    });
+
     return config;
   },
   (error) => {
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -38,35 +48,76 @@ apiClient.interceptors.request.use(
  * Response interceptor for handling errors.
  */
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log successful response for debugging
+    console.log(`API Response: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+
+    // Log error for debugging
+    console.error(`API Error: ${error.response?.status} ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
+      error: error.message,
+      response: error.response?.data
+    });
 
     // Handle 401 errors (unauthorized)
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // Try to refresh token
+      // Try to refresh token using the same function from auth.ts
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
-        if (refreshToken) {
-          // Implement token refresh logic here
-          // const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, { refresh_token: refreshToken });
-          // localStorage.setItem('access_token', response.data.access_token);
-          // return apiClient(originalRequest);
+        // Use the same refresh function as in auth.ts to ensure consistency
+        const refreshResponse = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include', // Important: include cookies for refresh token
+        });
+
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+
+          // Update token in storage using the same function as auth.ts
+          saveToken(refreshData.access_token);
+
+          // Update the original request with the new token
+          (originalRequest.headers as any).Authorization = `Bearer ${refreshData.access_token}`;
+          console.log('Token refreshed successfully, retrying request');
+          return apiClient(originalRequest);
         }
       } catch (refreshError) {
-        // Redirect to login if refresh fails
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
+        console.error('Token refresh error:', refreshError);
       }
+
+      // If refresh failed, redirect to login
+      clearTokens(); // Use the function from auth-storage
+      window.location.href = '/login';
+      return Promise.reject(error);
+    }
+
+    // Handle 403 errors (forbidden)
+    if (error.response?.status === 403) {
+      console.error('Access forbidden. Check your permissions.');
     }
 
     return Promise.reject(error);
   }
 );
+
+/**
+ * Get user profile.
+ */
+export async function getProfile(): Promise<any> {
+  try {
+    const response = await apiClient.get('/v1/auth/me');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.detail || error.message || 'Failed to get profile');
+    }
+    throw error;
+  }
+}
 
 /**
  * Generic API request function.
@@ -78,16 +129,30 @@ export async function apiRequest<T>(
   config?: AxiosRequestConfig
 ): Promise<T> {
   try {
+    console.log(`Making API request: ${method} ${url}`, { data }); // Debug log
+
     const response: AxiosResponse<T> = await apiClient.request({
       method,
       url,
       data,
       ...config,
     });
+
+    console.log(`API request successful: ${method} ${url}`, response.data); // Debug log
     return response.data;
   } catch (error) {
+    console.error(`API request failed: ${method} ${url}`, error); // Debug log
+
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.error?.message || error.message);
+      // Extract detailed error information
+      const errorMessage = error.response?.data?.detail ||
+                          error.response?.data?.error?.message ||
+                          error.response?.data?.message ||
+                          error.message ||
+                          'Unknown error occurred';
+
+      console.error('Detailed error response:', error.response?.data);
+      throw new Error(errorMessage);
     }
     throw error;
   }

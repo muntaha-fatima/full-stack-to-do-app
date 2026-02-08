@@ -2,10 +2,40 @@
 Core configuration module.
 """
 
-from typing import Any
+from typing import Any, List
+import os
+import json
+import re
 
-from pydantic import AnyHttpUrl, PostgresDsn, field_validator
+from pydantic import AnyHttpUrl, field_validator
+from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def parse_cors_origins(env_value: Any) -> List[str]:
+    """
+    Custom parser for CORS origins that handles both JSON arrays and comma-separated strings.
+    """
+    if isinstance(env_value, str):
+        env_value = env_value.strip()
+        if env_value.startswith("[") and env_value.endswith("]"):
+            # Parse as JSON list, but first fix any trailing commas that might cause issues
+            try:
+                # Remove trailing comma before closing bracket to avoid JSON parsing errors
+                env_value_fixed = re.sub(r',\s*\]', ']', env_value)
+                return json.loads(env_value_fixed)
+            except json.JSONDecodeError:
+                raise ValueError(f"Invalid JSON list format for BACKEND_CORS_ORIGINS: {env_value}")
+        elif env_value:  # If it's a non-empty string, treat as comma-separated
+            return [i.strip() for i in env_value.split(",") if i.strip()]
+        else:  # Empty string
+            return []
+    elif isinstance(env_value, list):
+        return env_value
+    elif env_value is None:
+        return []
+    else:
+        raise ValueError(f"Invalid format for BACKEND_CORS_ORIGINS: {env_value}")
 
 
 class Settings(BaseSettings):
@@ -35,28 +65,19 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # CORS
-    BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = []
-
-    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
-    @classmethod
-    def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
-            return v
-        raise ValueError(v)
+    # CORS - Define as Any type to bypass automatic parsing
+    BACKEND_CORS_ORIGINS: Any = []
 
     # Trusted hosts (for production)
     ALLOWED_HOSTS: list[str] = ["*"]
 
     # Database
-    DATABASE_URL: PostgresDsn
+    DATABASE_URL: str
 
-    # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
+    # Frontend URL
+    FRONTEND_URL: str = "http://localhost:3001"
 
-    # Rate limiting
+    # Rate limiting (using in-memory for simplicity)
     RATE_LIMIT_PER_MINUTE: int = 100
     RATE_LIMIT_PER_IP: int = 1000
 
@@ -75,13 +96,24 @@ class Settings(BaseSettings):
     FROM_EMAIL: str = "noreply@todoapp.com"
     FROM_NAME: str = "Todo App"
 
-    # Celery Configuration
-    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
+    # Celery Configuration (using in-memory broker for development)
+    CELERY_BROKER_URL: str = "memory://localhost/"
+    CELERY_RESULT_BACKEND: str = "cache+memory://"
 
     # Email Settings
     EMAIL_VERIFICATION_EXPIRE_HOURS: int = 24
     PASSWORD_RESET_EXPIRE_HOURS: int = 1
+
+    def model_post_init(self, __context: Any) -> None:
+        """
+        Post-initialization hook to process BACKEND_CORS_ORIGINS after loading from environment.
+        """
+        if hasattr(self, '_backend_cors_origins_processed'):
+            return  # Already processed
+
+        # Process the CORS origins
+        self.BACKEND_CORS_ORIGINS = parse_cors_origins(getattr(self, 'BACKEND_CORS_ORIGINS', []))
+        setattr(self, '_backend_cors_origins_processed', True)
 
 
 settings = Settings()

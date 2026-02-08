@@ -24,5 +24,5 @@ if not exist "requirements_installed.txt" (
 )
 
 REM Start the backend server
-echo Starting backend server on port 8000...
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+echo Starting backend server on port 8001...
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8001

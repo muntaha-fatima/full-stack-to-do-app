@@ -1,211 +1,282 @@
 """
-Task API endpoints.
+Task API endpoints following the specified RESTful design.
 """
 
-from typing import Any
-
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.models.task import Task, TaskPriority, TaskStatus
 from app.models.user import User
-from app.schemas.task import TaskCreate, TaskListResponse, TaskResponse, TaskUpdate
+from app.models.task import Task
+from app.schemas.task import (
+    TaskCreate,
+    TaskUpdate,
+    TaskResponse,
+    TaskListResponse,
+    ErrorResponse
+)
+from app.repositories.task_repository import TaskRepository
+from app.core.security import verify_token
 
 router = APIRouter()
 
 
-@router.get("/", response_model=TaskListResponse)
+@router.get("/{user_id}/tasks", response_model=TaskListResponse)
 async def list_tasks(
+    user_id: int,
+    status: Optional[str] = Query(None, description="Filter tasks by status (todo, in_progress, completed)"),
     current_user: User = Depends(get_current_user),
-    skip: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(20, ge=1, le=100, description="Number of records to return"),
-    status: TaskStatus | None = Query(None, description="Filter by status"),
-    priority: TaskPriority | None = Query(None, description="Filter by priority"),
-    completed: bool | None = Query(None, description="Filter by completion status"),
-    tag: str | None = Query(None, description="Filter by tag"),
     db: AsyncSession = Depends(get_db),
-) -> Any:
+) -> TaskListResponse:
     """
-    Retrieve a paginated list of tasks for the current user.
+    List all tasks for a specific user.
 
     Args:
-        current_user: Authenticated user
-        skip: Number of records to skip (for pagination)
-        limit: Maximum number of records to return
-        status: Optional status filter
-        priority: Optional priority filter
-        completed: Optional completion status filter
-        tag: Optional tag filter (tasks containing this tag)
+        user_id: The ID of the user whose tasks to retrieve
+        status: Optional status filter (todo, in_progress, completed)
+        current_user: The authenticated user making the request
         db: Database session
 
     Returns:
-        Paginated list of tasks with metadata
+        TaskListResponse: Paginated list of tasks
     """
-    # Build query
-    query = select(Task).where(Task.owner_id == current_user.id)
+    # Verify that the requesting user is the same as the user_id in the path
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view tasks for this user"
+        )
 
-    # Apply filters
-    if status is not None:
-        query = query.where(Task.status == status)
-    if priority is not None:
-        query = query.where(Task.priority == priority)
-    if completed is not None:
-        query = query.where(Task.completed == completed)
-    if tag is not None:
-        query = query.where(Task.tags.contains([tag]))
+    task_repo = TaskRepository(db)
+    tasks = await task_repo.get_tasks_by_owner(user_id, status)
 
-    # Get total count
-    count_query = select(func.count()).select_from(query.subquery())
-    total_result = await db.execute(count_query)
-    total = total_result.scalar_one()
+    # Convert to response format
+    task_responses = [TaskResponse.from_orm(task) for task in tasks]
 
-    # Apply pagination and ordering
-    query = query.order_by(Task.created_at.desc()).offset(skip).limit(limit)
-
-    # Execute query
-    result = await db.execute(query)
-    tasks = result.scalars().all()
-
-    # Calculate pagination metadata
-    total_pages = (total + limit - 1) // limit if total > 0 else 0
-    current_page = (skip // limit) + 1 if limit > 0 else 1
-
-    return {
-        "data": tasks,
-        "meta": {
-            "page": current_page,
-            "per_page": limit,
-            "total": total,
-            "total_pages": total_pages,
-        },
-    }
+    return TaskListResponse(
+        data=task_responses,
+        meta={
+            "page": 1,
+            "per_page": len(tasks),
+            "total": len(tasks),
+            "total_pages": 1
+        }
+    )
 
 
-@router.post("/", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/{user_id}/tasks", response_model=TaskResponse)
 async def create_task(
+    user_id: int,
     task_in: TaskCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Any:
+) -> TaskResponse:
     """
-    Create a new task for the current user.
+    Create a new task for a specific user.
 
     Args:
+        user_id: The ID of the user who owns the task
         task_in: Task creation data
-        current_user: Authenticated user
+        current_user: The authenticated user making the request
         db: Database session
 
     Returns:
-        Created task
+        TaskResponse: The created task
     """
-    task = Task(**task_in.model_dump(), owner_id=current_user.id)
-    db.add(task)
-    await db.commit()
-    await db.refresh(task)
-    return task
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Log incoming request for debugging
+    logger.info(f"Creating task for user_id: {user_id}, current_user.id: {current_user.id}")
+    logger.info(f"Task data received: {task_in.model_dump()}")
+
+    # Verify that the requesting user is the same as the user_id in the path
+    if current_user.id != user_id:
+        logger.warning(f"User ID mismatch: path user_id={user_id}, authenticated user_id={current_user.id}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Not authorized to create tasks for this user. Path user_id: {user_id}, authenticated user_id: {current_user.id}"
+        )
+
+    task_repo = TaskRepository(db)
+    task_data = task_in.model_dump()
+    task_data['owner_id'] = user_id
+
+    # Log the final data being saved
+    logger.info(f"Final task data to save: {task_data}")
+
+    try:
+        created_task = await task_repo.create_task(task_data)
+        logger.info(f"Task created successfully with ID: {created_task.id}")
+        return TaskResponse.from_orm(created_task)
+    except Exception as e:
+        logger.error(f"Error creating task: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Error creating task: {str(e)}"
+        )
 
 
-@router.get("/{task_id}", response_model=TaskResponse)
+@router.get("/{user_id}/tasks/{id}", response_model=TaskResponse)
 async def get_task(
-    task_id: int,
+    user_id: int,
+    id: int,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Any:
+) -> TaskResponse:
     """
-    Get a specific task by ID for the current user.
+    Get details of a specific task.
 
     Args:
-        task_id: Task ID
-        current_user: Authenticated user
+        user_id: The ID of the user who owns the task
+        id: The ID of the task to retrieve
+        current_user: The authenticated user making the request
         db: Database session
 
     Returns:
-        Task details
-
-    Raises:
-        HTTPException: If task not found or not owned by user
+        TaskResponse: The requested task
     """
-    result = await db.execute(select(Task).where(Task.id == task_id).where(Task.owner_id == current_user.id))
-    task = result.scalar_one_or_none()
+    # Verify that the requesting user is the same as the user_id in the path
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view tasks for this user"
+        )
+
+    task_repo = TaskRepository(db)
+    task = await task_repo.get_task_by_id_and_owner(id, user_id)
 
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found or not owned by user",
+            detail="Task not found"
         )
 
-    return task
+    return TaskResponse.from_orm(task)
 
 
-@router.patch("/{task_id}", response_model=TaskResponse)
+@router.put("/{user_id}/tasks/{id}", response_model=TaskResponse)
 async def update_task(
-    task_id: int,
+    user_id: int,
+    id: int,
     task_in: TaskUpdate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Any:
+) -> TaskResponse:
     """
-    Update a task (partial update) for the current user.
+    Update a specific task.
 
     Args:
-        task_id: Task ID
-        task_in: Task update data (only provided fields will be updated)
-        current_user: Authenticated user
+        user_id: The ID of the user who owns the task
+        id: The ID of the task to update
+        task_in: Task update data
+        current_user: The authenticated user making the request
         db: Database session
 
     Returns:
-        Updated task
-
-    Raises:
-        HTTPException: If task not found or not owned by user
+        TaskResponse: The updated task
     """
-    result = await db.execute(select(Task).where(Task.id == task_id).where(Task.owner_id == current_user.id))
-    task = result.scalar_one_or_none()
+    # Verify that the requesting user is the same as the user_id in the path
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update tasks for this user"
+        )
+
+    task_repo = TaskRepository(db)
+    task = await task_repo.get_task_by_id_and_owner(id, user_id)
 
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found or not owned by user",
+            detail="Task not found"
         )
 
-    # Update only provided fields
+    # Update the task with the provided data
     update_data = task_in.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(task, field, value)
+    updated_task = await task_repo.update_task(task.id, update_data)
 
-    await db.commit()
-    await db.refresh(task)
-    return task
+    return TaskResponse.from_orm(updated_task)
 
 
-@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{user_id}/tasks/{id}")
 async def delete_task(
-    task_id: int,
+    user_id: int,
+    id: int,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> None:
+) -> dict:
     """
-    Delete a task for the current user.
+    Delete a specific task.
 
     Args:
-        task_id: Task ID
-        current_user: Authenticated user
+        user_id: The ID of the user who owns the task
+        id: The ID of the task to delete
+        current_user: The authenticated user making the request
         db: Database session
 
-    Raises:
-        HTTPException: If task not found or not owned by user
+    Returns:
+        dict: Success message
     """
-    result = await db.execute(select(Task).where(Task.id == task_id).where(Task.owner_id == current_user.id))
-    task = result.scalar_one_or_none()
+    # Verify that the requesting user is the same as the user_id in the path
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to delete tasks for this user"
+        )
+
+    task_repo = TaskRepository(db)
+    task = await task_repo.get_task_by_id_and_owner(id, user_id)
 
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found or not owned by user",
+            detail="Task not found"
         )
 
-    await db.delete(task)
-    await db.commit()
+    await task_repo.delete_task(task.id)
+
+    return {"message": "Task deleted successfully"}
+
+
+@router.patch("/{user_id}/tasks/{id}/complete")
+async def toggle_task_completion(
+    user_id: int,
+    id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> TaskResponse:
+    """
+    Toggle completion status of a specific task.
+
+    Args:
+        user_id: The ID of the user who owns the task
+        id: The ID of the task to update
+        current_user: The authenticated user making the request
+        db: Database session
+
+    Returns:
+        TaskResponse: The updated task with toggled completion status
+    """
+    # Verify that the requesting user is the same as the user_id in the path
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update tasks for this user"
+        )
+
+    task_repo = TaskRepository(db)
+    task = await task_repo.get_task_by_id_and_owner(id, user_id)
+
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
+        )
+
+    # Toggle the completion status
+    updated_task = await task_repo.toggle_task_completion(task.id)
+
+    return TaskResponse.from_orm(updated_task)

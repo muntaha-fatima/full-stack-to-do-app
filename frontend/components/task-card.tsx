@@ -1,30 +1,30 @@
-/**
- * Task card component with enhanced UI/UX.
- */
+'use client';
 
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
+import { Task } from '@/types/task';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/date-utils';
 import { cn } from '@/lib/utils';
 import {
-  CalendarIcon,
-  FlagIcon,
-  CircleIcon,
-  CheckCircleIcon,
-  TimerIcon
+  Calendar as CalendarIcon,
+  Flag as FlagIcon,
+  Circle,
+  CheckCircle2 as CheckCircleIcon,
+  Clock as TimerIcon,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 
 interface TaskCardProps {
   task: Task;
+  onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
   onToggleComplete: (task: Task) => void;
-  onEdit: (task: Task) => void;
 }
 
-export function TaskCard({ task, onDelete, onToggleComplete, onEdit }: TaskCardProps) {
+export function TaskCard({ task, onEdit, onDelete, onToggleComplete }: TaskCardProps) {
   const handleToggleComplete = () => {
     onToggleComplete(task);
   };
@@ -38,7 +38,7 @@ export function TaskCard({ task, onDelete, onToggleComplete, onEdit }: TaskCardP
   };
 
   // Determine priority color
-  const getPriorityColor = (priority: TaskPriority) => {
+  const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
         return 'border-l-red-500 bg-red-50/50 dark:bg-red-500/10';
@@ -52,7 +52,7 @@ export function TaskCard({ task, onDelete, onToggleComplete, onEdit }: TaskCardP
   };
 
   // Determine status badge variant
-  const getStatusVariant = (status: TaskStatus) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
       case 'todo':
         return 'default';
@@ -66,140 +66,83 @@ export function TaskCard({ task, onDelete, onToggleComplete, onEdit }: TaskCardP
   };
 
   // Get status icon
-  const getStatusIcon = (status: TaskStatus) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'todo':
-        return <CircleIcon className="h-4 w-4 text-gray-500" />;
+        return <Circle className="h-4 w-4 text-gray-500" aria-label="To do" />;
       case 'in_progress':
-        return <TimerIcon className="h-4 w-4 text-blue-500" />;
+        return <TimerIcon className="h-4 w-4 text-blue-500" aria-label="In progress" />;
       case 'completed':
-        return <CheckCircleIcon className="h-4 w-4 text-green-500" />;
+        return <CheckCircleIcon className="h-4 w-4 text-green-500" aria-label="Completed" />;
       default:
-        return <CircleIcon className="h-4 w-4 text-gray-500" />;
+        return <Circle className="h-4 w-4 text-gray-500" aria-label="To do" />;
     }
   };
 
   return (
     <Card
       className={cn(
-        "flex flex-col h-full border-0 shadow-sm rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md",
+        "flex flex-col h-full border-0 shadow-sm rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
         "border-l-4",
         getPriorityColor(task.priority),
         task.completed && "opacity-70 bg-muted/30"
       )}
+      role="article"
+      aria-labelledby={`task-title-${task.id}`}
+      tabIndex={-1}
     >
-      <CardHeader className="pb-3 pt-4 px-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-2">
-            <Checkbox
-              checked={task.completed}
-              onCheckedChange={handleToggleComplete}
-              className="mt-0.5"
-            />
-            <div className="flex-1 min-w-0">
-              <h3
-                className={cn(
-                  "font-semibold text-base leading-tight mb-1 truncate",
-                  task.completed && "line-through text-muted-foreground"
-                )}
-              >
-                {task.title}
-              </h3>
-
-              {task.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {task.description}
-                </p>
-              )}
+      <CardContent className="p-4 flex items-center gap-3">
+        <Checkbox
+          id={`complete-${task.id}`}
+          checked={task.completed}
+          onCheckedChange={handleToggleComplete}
+          className="mt-0.5"
+          aria-label={`Mark task "${task.title}" as ${task.completed ? 'incomplete' : 'complete'}`}
+        />
+        
+        <div className="flex-1 min-w-0">
+          <p className={`text-gray-800 ${task.completed ? 'line-through text-gray-500' : ''}`}>
+            {task.title}
+          </p>
+          {task.due_date && (
+            <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+              <CalendarIcon className="h-3 w-3" />
+              <span>{new Date(task.due_date).toLocaleDateString()}</span>
             </div>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleEdit}
-              className="h-8 w-8"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-              >
-                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-              </svg>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleDelete}
-              className="h-8 w-8 text-destructive hover:text-destructive"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-              >
-                <path d="M3 6h18" />
-                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-              </svg>
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="pb-0 px-4 pt-0">
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <Badge variant={getStatusVariant(task.status)} className="text-xs">
-            <span className="mr-1">{getStatusIcon(task.status)}</span>
-            {task.status.replace('_', ' ')}
-          </Badge>
-
-          <Badge variant="outline" className="text-xs capitalize">
-            <FlagIcon className="h-3 w-3 mr-1" />
-            {task.priority}
-          </Badge>
+          )}
         </div>
 
-        {task.due_date && (
-          <div className="flex items-center text-sm text-muted-foreground mt-1">
-            <CalendarIcon className="h-4 w-4 mr-1" />
-            <span>Due: {formatDate(task.due_date)}</span>
-          </div>
+        {task.priority === 'high' && (
+          <FlagIcon className="h-4 w-4 text-red-500 flex-shrink-0" />
+        )}
+        {task.priority === 'medium' && (
+          <FlagIcon className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+        )}
+        {task.priority === 'low' && (
+          <FlagIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
         )}
 
-        {task.tags && task.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {task.tags.map((tag, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                #{tag}
-              </Badge>
-            ))}
-          </div>
-        )}
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleEdit}
+            className="h-8 w-8 text-gray-400 hover:text-blue-600"
+            aria-label={`Edit task "${task.title}"`}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleDelete}
+            className="h-8 w-8 text-gray-400 hover:text-red-600"
+            aria-label={`Delete task "${task.title}"`}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </CardContent>
-
-      <CardFooter className="px-4 py-3 mt-auto pt-3 border-t border-border/40">
-        <div className="text-xs text-muted-foreground">
-          Created: {formatDate(task.created_at)}
-        </div>
-      </CardFooter>
     </Card>
   );
 }

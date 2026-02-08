@@ -1,0 +1,85 @@
+openapi: 3.0.1
+info:
+  title: Todo Chatbot API
+  description: API for the AI-Powered Todo Chatbot feature
+  version: 1.0.0
+paths:
+  /api/{user_id}/chat:
+    post:
+      summary: Process a chat message and return AI response
+      description: |
+        Stateless endpoint that receives a user's chat message, processes it using the AI agent,
+        and returns an appropriate response. The conversation state is persisted in the database.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user sending the message
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                conversation_id:
+                  type: integer
+                  description: Optional ID of an existing conversation to continue
+                  example: 123
+                message:
+                  type: string
+                  description: The user's message to the chatbot
+                  example: "Add task: Buy groceries"
+      responses:
+        '200':
+          description: Successful response from the chatbot
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - conversation_id
+                  - response
+                properties:
+                  conversation_id:
+                    type: integer
+                    description: The ID of the conversation (newly created or existing)
+                    example: 123
+                  response:
+                    type: string
+                    description: The chatbot's response to the user's message
+                    example: "Task 'Buy groceries' added successfully! ✅"
+                  tool_calls:
+                    type: array
+                    description: Optional list of tool calls made by the agent
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Name of the tool called
+                          example: "add_task"
+                        arguments:
+                          type: object
+                          description: Arguments passed to the tool
+                          example:
+                            title: "Buy groceries"
+                            description: "Get milk, bread, and eggs"
+        '400':
+          description: Bad request, typically due to invalid input
+        '401':
+          description: Unauthorized, user authentication failed
+        '500':
+          description: Internal server error
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Better Auth Bearer token

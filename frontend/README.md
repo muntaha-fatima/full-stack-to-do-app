@@ -50,7 +50,7 @@ frontend/
 ## Prerequisites
 
 - Node.js 18+ and npm 9+
-- Backend API running on http://localhost:8000 (or configured URL)
+- Backend API running on http://localhost:8001 (or configured URL)
 
 ## Setup
 
@@ -71,7 +71,7 @@ cp .env.local.example .env.local
 Edit `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8001
 NODE_ENV=development
 ```
 
@@ -225,7 +225,7 @@ docker-compose up frontend
 
 ### Required
 
-- `NEXT_PUBLIC_API_URL` - Backend API URL (default: http://localhost:8000)
+- `NEXT_PUBLIC_API_URL` - Backend API URL (default: http://localhost:8001)
 
 ### Optional
 
@@ -242,7 +242,7 @@ docker-compose up frontend
 
 ### API Connection Issues
 
-1. Verify backend is running: http://localhost:8000/health
+1. Verify backend is running: http://localhost:8001/health
 2. Check CORS configuration in backend
 3. Verify `NEXT_PUBLIC_API_URL` in `.env.local`
 
