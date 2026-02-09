@@ -8,7 +8,7 @@ def test_task_operations():
     # Use a valid token
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzA1NDA1NjgsInN1YiI6IjEiLCJ0eXBlIjoiYWNjZXNzIn0.djgP2pXoonsbUNAGAm6DZpQVA_fobnMnlWT-JVGnqCg'
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzA1NDcxMzYsInN1YiI6IjEiLCJ0eXBlIjoiYWNjZXNzIn0.VIlgyTgz3R9TPXqFIaeVyWIfU4nXW0cuifeAmB-ejg0'
     }
     
     # Test cases
