@@ -26,11 +26,6 @@ import {
   Plus,
   CalendarIcon,
   Flag,
-  Pencil,
-  Trash2,
-  Loader2,
-  AlertTriangle,
-  X,
   MoreHorizontal,
   MessageCircle,
   Send
@@ -115,7 +110,7 @@ export default function TodoistDashboard() {
       setQuickTaskInput('');
       toast.success('Task created successfully!');
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast.error('Failed to create task. Please try again.');
     },
   });
@@ -129,7 +124,7 @@ export default function TodoistDashboard() {
       setEditingTask(null);
       toast.success('Task updated successfully!');
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast.error('Failed to update task. Please try again.');
     },
   });
@@ -141,7 +136,7 @@ export default function TodoistDashboard() {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       toast.success('Task deleted successfully!');
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast.error('Failed to delete task. Please try again.');
     },
   });

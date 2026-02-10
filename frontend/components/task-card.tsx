@@ -4,15 +4,10 @@ import { Task } from '@/types/task';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { formatDate } from '@/lib/date-utils';
 import { cn } from '@/lib/utils';
 import {
   Calendar as CalendarIcon,
   Flag as FlagIcon,
-  Circle,
-  CheckCircle2 as CheckCircleIcon,
-  Clock as TimerIcon,
   Pencil,
   Trash2
 } from 'lucide-react';
@@ -51,33 +46,6 @@ export function TaskCard({ task, onEdit, onDelete, onToggleComplete }: TaskCardP
     }
   };
 
-  // Determine status badge variant
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'todo':
-        return 'default';
-      case 'in_progress':
-        return 'secondary';
-      case 'completed':
-        return 'success';
-      default:
-        return 'default';
-    }
-  };
-
-  // Get status icon
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'todo':
-        return <Circle className="h-4 w-4 text-gray-500" aria-label="To do" />;
-      case 'in_progress':
-        return <TimerIcon className="h-4 w-4 text-blue-500" aria-label="In progress" />;
-      case 'completed':
-        return <CheckCircleIcon className="h-4 w-4 text-green-500" aria-label="Completed" />;
-      default:
-        return <Circle className="h-4 w-4 text-gray-500" aria-label="To do" />;
-    }
-  };
 
   return (
     <Card

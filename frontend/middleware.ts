@@ -1,4 +1,3 @@
-import { cookies, headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { isUserAuthenticatedOnServer } from "./lib/server-auth";
 

@@ -49,14 +49,16 @@ export default function SignupPage() {
       // Redirect to login after successful signup
       router.push('/login');
       router.refresh(); // Refresh to update the UI
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Signup failed:', error);
 
       // Check if it's a network error
-      if (error.message.includes('fetch')) {
+      if (error instanceof Error && error.message.includes('fetch')) {
         setError('Unable to connect to the server. Please make sure the backend is running on port 8001.');
+      } else if (error instanceof Error) {
+        setError(error.message);
       } else {
-        setError(error instanceof Error ? error.message : 'Signup failed. Please try again.');
+        setError('Signup failed. Please try again.');
       }
     } finally {
       setIsLoading(false);

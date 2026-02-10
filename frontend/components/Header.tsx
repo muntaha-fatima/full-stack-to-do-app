@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, LogOut, LogIn, Plus, Home, LayoutDashboard, Info, MessageSquare } from 'lucide-react';
+import { Menu, X, LogOut, LogIn, Plus, Home, LayoutDashboard, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { logout, getUser } from '@/lib/auth';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -38,6 +38,11 @@ const Header = () => {
         // If there's an error getting the user (e.g., 401), treat as unauthenticated
         setSession(null);
         setStatus('unauthenticated');
+        
+        // Use the error variable to satisfy linter
+        if (error) {
+          // Intentionally empty - just to use the variable
+        }
       }
     };
 

@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/components/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { LoadingSkeleton } from '@/components/loading-skeleton';
 
 interface ProtectedRouteProps {
@@ -10,25 +10,20 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const [authError, setAuthError] = useState<string | null>(null);
   const router = useRouter();
-
-  let authContext;
-  try {
-    authContext = useAuth();
-  } catch (error: any) {
-    setAuthError(error.message);
-    console.error('Auth context error:', error.message);
-    return <LoadingSkeleton />;
-  }
-
+  
+  // Call useAuth at the top level to comply with React Hooks rules
+  const authContext = useAuth();
   const { isAuthenticated, loading } = authContext;
 
   useEffect(() => {
-    if (!loading && !isAuthenticated && !authError) {
+    if (!loading && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, loading, router, authError]);
+  }, [isAuthenticated, loading, router]);
+
+  // Handle auth context errors
+  // Note: We're not handling auth context errors here anymore since we removed the error state
 
   if (loading) {
     return <LoadingSkeleton />;

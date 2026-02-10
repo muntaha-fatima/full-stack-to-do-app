@@ -3,7 +3,7 @@
 
 export const auth = {
   api: {
-    getSession: async ({ headers }: { headers: any }) => {
+    getSession: async ({ headers }: { headers: Record<string, string> }) => {
       // Mock implementation - in real Better Auth this would validate the session
       const cookieHeader = headers.cookie;
       if (!cookieHeader) return null;

@@ -3,7 +3,7 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { authClient, getAuthToken } from './auth'; // Import our auth client and token function
+import { getAuthToken } from './auth'; // Import our auth client and token function
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
@@ -62,7 +62,7 @@ apiClient.interceptors.response.use(
 
     // Handle 403 errors (forbidden)
     if (error.response?.status === 403) {
-      console.error('Access forbidden. Check your permissions.');
+      // Log this error if needed for monitoring
     }
 
     return Promise.reject(error);
@@ -72,7 +72,7 @@ apiClient.interceptors.response.use(
 /**
  * Get user profile from the existing backend.
  */
-export async function getProfile(): Promise<any> {
+export async function getProfile(): Promise<unknown> {
   try {
     const response = await apiClient.get('/v1/auth/me');
     return response.data;

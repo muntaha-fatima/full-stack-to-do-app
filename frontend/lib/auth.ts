@@ -4,7 +4,7 @@
  */
 
 import type { User } from '@/types/user';
-import { saveToken, saveRefreshToken, clearTokens, getToken as getStoredToken, getRefreshToken } from './auth-storage';
+import { saveToken, clearTokens, getToken as getStoredToken } from './auth-storage';
 
 export interface LoginCredentials {
   email_or_username: string;
@@ -233,7 +233,6 @@ export async function getUser(): Promise<User | null> {
     if (!response.ok) {
       // If we get a 401, try to refresh the token and retry the request
       if (response.status === 401) {
-        console.log('Token expired, attempting refresh...');
         const refreshed = await refreshToken();
         if (refreshed) {
           // Retry the request with the new token
@@ -246,7 +245,6 @@ export async function getUser(): Promise<User | null> {
           });
 
           if (!retryResponse.ok) {
-            console.error(`Failed to fetch user after refresh: ${retryResponse.status}`, await retryResponse.text());
             return null;
           }
 
@@ -254,12 +252,10 @@ export async function getUser(): Promise<User | null> {
           return userData;
         } else {
           // If refresh failed, clear tokens and return null
-          console.warn('Token refresh failed, clearing tokens');
           clearTokens();
           return null;
         }
       } else {
-        console.error(`Failed to fetch user: ${response.status}`, await response.text());
         return null;
       }
     }

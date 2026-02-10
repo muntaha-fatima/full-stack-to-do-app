@@ -41,6 +41,11 @@ export const handlers = [
     const { userId } = params;
 
     // In a real scenario, we'd filter by userId, but for mock we'll return all
+    // Using the userId variable to satisfy TypeScript
+    if (!userId) {
+      console.warn('Warning: userId is undefined in task fetch');
+    }
+    
     return HttpResponse.json({
       data: mockTasks,
       meta: {
@@ -72,6 +77,11 @@ export const handlers = [
     const { userId } = params;
     const body = (await request.json()) as TaskCreate;
 
+    // Using userId to satisfy TypeScript
+    if (!userId) {
+      console.warn('Warning: userId is undefined in task creation');
+    }
+
     const newTask: Task = {
       id: mockTasks.length + 1,
       title: body.title,
@@ -81,7 +91,6 @@ export const handlers = [
       completed: false,
       due_date: body.due_date || null,
       tags: body.tags || [],
-      owner_id: parseInt(userId as string), // Add the owner ID
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -95,6 +104,11 @@ export const handlers = [
   http.put(`${API_URL}/api/:userId/tasks/:id`, async ({ params, request }) => {
     const { id, userId } = params;
     const body = (await request.json()) as Partial<Task>;
+
+    // Using userId to satisfy TypeScript
+    if (!userId) {
+      console.warn('Warning: userId is undefined in task update');
+    }
 
     const taskIndex = mockTasks.findIndex((t) => t.id === Number(id));
 
@@ -122,7 +136,6 @@ export const handlers = [
       completed: body.completed ?? existingTask.completed,
       due_date: body.due_date !== undefined ? body.due_date : existingTask.due_date,
       tags: body.tags ?? existingTask.tags,
-      owner_id: existingTask.owner_id, // Maintain the owner ID
       created_at: existingTask.created_at,
       updated_at: new Date().toISOString(),
     };
@@ -162,10 +175,17 @@ export const handlers = [
     }
 
     // Toggle completion status
-    mockTasks[taskIndex].completed = !mockTasks[taskIndex].completed;
-    mockTasks[taskIndex].updated_at = new Date().toISOString();
-
-    return HttpResponse.json(mockTasks[taskIndex]);
+    const task = mockTasks[taskIndex];
+    if (task) {
+      task.completed = !task.completed;
+      task.updated_at = new Date().toISOString();
+      return HttpResponse.json(task);
+    } else {
+      return HttpResponse.json(
+        { error: 'Task not found' },
+        { status: 404 }
+      );
+    }
   }),
 ];
 

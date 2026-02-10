@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { getTasks, createTask, updateTask, deleteTask } from '@/lib/tasks';
-import type { Task, TaskCreate, TaskStatus } from '@/types/task';
+import type { Task, TaskCreate, TaskStatus, TaskListResponse } from '@/types/task';
 import { TaskForm } from '@/components/task-form';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -51,8 +51,8 @@ export default function Home() {
       const previousTasks = queryClient.getQueryData(['tasks', statusFilter]);
 
       // Optimistically update for current filter
-      queryClient.setQueryData(['tasks', statusFilter], (old: any) => {
-        if (!old) return { data: [], meta: { total: 0 } };
+      queryClient.setQueryData<TaskListResponse>(['tasks', statusFilter], (old) => {
+        if (!old) return { data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 1 } };
         const optimisticTask: Task = {
           id: Date.now(), // Temporary ID
           title: newTask.title,
@@ -106,7 +106,7 @@ export default function Home() {
 
       const previousTasks = queryClient.getQueryData(['tasks', statusFilter]);
 
-      queryClient.setQueryData(['tasks', statusFilter], (old: any) => {
+      queryClient.setQueryData<TaskListResponse>(['tasks', statusFilter], (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -139,8 +139,8 @@ export default function Home() {
 
       const previousTasks = queryClient.getQueryData(['tasks', statusFilter]);
 
-      queryClient.setQueryData(['tasks', statusFilter], (old: any) => {
-        if (!old) return { data: [], meta: { total: 0 } };
+      queryClient.setQueryData<TaskListResponse>(['tasks', statusFilter], (old) => {
+        if (!old) return { data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 1 } };
         return {
           ...old,
           data: old.data.filter((task: Task) => task.id !== id),

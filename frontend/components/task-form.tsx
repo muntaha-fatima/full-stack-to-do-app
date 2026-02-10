@@ -212,7 +212,7 @@ export function TaskForm({
         </Button>
         <Button
           type="submit"
-          variant="primary"
+          variant="default"
           disabled={isSubmitting}
           className="min-w-[120px]"
           aria-label={isSubmitting ? "Saving task..." : "Create task"}

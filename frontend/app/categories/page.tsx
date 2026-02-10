@@ -31,7 +31,7 @@ export default function CategoriesPage() {
 
       // Optimistically update
       queryClient.setQueryData<CategoryListResponse>(['categories'], (old) => {
-        if (!old) return { data: [], meta: { total: 0 } };
+        if (!old) return { data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 1 } };
         const optimisticCategory: Category = {
           id: Date.now(), // Temporary ID
           name: newCategory.name,
@@ -105,7 +105,7 @@ export default function CategoriesPage() {
       const previousCategories = queryClient.getQueryData<CategoryListResponse>(['categories']);
 
       queryClient.setQueryData<CategoryListResponse>(['categories'], (old) => {
-        if (!old) return { data: [], meta: { total: 0 } };
+        if (!old) return { data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 1 } };
         return {
           ...old,
           data: old.data.filter((category: Category) => category.id !== id),

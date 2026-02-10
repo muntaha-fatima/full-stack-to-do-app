@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ChatRequest, ChatResponse } from '../../../shared/types/chat';
+import { ChatRequest, ChatResponse } from '../types/chat';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 

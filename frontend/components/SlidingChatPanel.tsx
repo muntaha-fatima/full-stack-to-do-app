@@ -75,7 +75,6 @@ export default function SlidingChatPanel() {
 
     // Use the actual user ID from the authenticated user
     const userId = currentUser.id;
-    console.log('Using user ID for chat:', userId);
 
     // Add user message to the list
     const userMessage = {

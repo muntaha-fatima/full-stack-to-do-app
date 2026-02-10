@@ -7,7 +7,6 @@ import { getTasks, createTask, updateTask, deleteTask } from '@/lib/tasks';
 import type { Task, TaskCreate } from '@/types/task';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { Modal } from '@/components/modal';
 import { TaskForm } from '@/components/task-form';
 import { TaskListSimple } from '@/components/task-list-simple';
@@ -23,11 +22,6 @@ import {
   Plus,
   CalendarIcon,
   Flag,
-  Pencil,
-  Trash2,
-  Loader2,
-  AlertTriangle,
-  X,
   MoreHorizontal
 } from 'lucide-react';
 
@@ -66,7 +60,7 @@ export default function TodoistDashboard() {
       setQuickTaskInput('');
       toast.success('Task created successfully!');
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast.error('Failed to create task. Please try again.');
     },
   });
@@ -80,7 +74,7 @@ export default function TodoistDashboard() {
       setEditingTask(null);
       toast.success('Task updated successfully!');
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast.error('Failed to update task. Please try again.');
     },
   });
@@ -92,7 +86,7 @@ export default function TodoistDashboard() {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       toast.success('Task deleted successfully!');
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast.error('Failed to delete task. Please try again.');
     },
   });

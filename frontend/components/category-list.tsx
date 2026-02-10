@@ -2,7 +2,7 @@
  * Category list component.
  */
 
-import { Category, CategoryListResponse } from '@/types/category';
+import { Category, CategoryListResponse, CategoryCreate, CategoryUpdate } from '@/types/category';
 import { CategoryForm } from './category-form';
 import { Button } from './ui/button';
 import { Modal } from './modal';
@@ -13,8 +13,8 @@ interface CategoryListProps {
   data: CategoryListResponse | undefined;
   isLoading: boolean;
   error: Error | null;
-  onCreate: (categoryData: any) => void;
-  onUpdate: (id: number, categoryData: any) => void;
+  onCreate: (categoryData: CategoryCreate) => void;
+  onUpdate: (id: number, categoryData: CategoryUpdate) => void;
   onDelete: (id: number) => void;
   isCreating?: boolean;
   isUpdating?: boolean;
@@ -35,14 +35,18 @@ export function CategoryList({
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-  const handleCreateCategory = (categoryData: any) => {
-    onCreate(categoryData);
-    setIsCreateModalOpen(false);
+  const handleCreateCategory = (categoryData: CategoryCreate | CategoryUpdate) => {
+    // Type guard to ensure it's CategoryCreate
+    if ('name' in categoryData && typeof categoryData.name === 'string') {
+      onCreate(categoryData as CategoryCreate);
+      setIsCreateModalOpen(false);
+    }
   };
 
-  const handleUpdateCategory = (categoryData: any) => {
-    if (editingCategory) {
-      onUpdate(editingCategory.id, categoryData);
+  const handleUpdateCategory = (categoryData: CategoryCreate | CategoryUpdate) => {
+    if (editingCategory && 'name' in categoryData) {
+      // Type guard to ensure it's CategoryUpdate
+      onUpdate(editingCategory.id, categoryData as CategoryUpdate);
       setEditingCategory(null);
     }
   };

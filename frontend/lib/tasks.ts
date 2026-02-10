@@ -100,12 +100,10 @@ export async function createTask(task: TaskCreate): Promise<Task> {
     description: task.description ? task.description.trim() : null,
     status: task.status || 'todo',
     priority: task.priority || 'medium',
-    due_date: formatDate(task.due_date), // Format the date properly
+    due_date: task.due_date ? formatDate(task.due_date) : null, // Format the date properly
     tags: Array.isArray(task.tags) ? task.tags : []
   };
 
-  console.log('Creating task with data:', sanitizedTask); // Debug log
-  console.log('Current user ID:', userId); // Debug log
 
   // Make sure we have a valid user ID
   if (!userId) {
@@ -133,7 +131,7 @@ export async function updateTask(taskId: number, task: TaskUpdate): Promise<Task
     status: task.status,
     priority: task.priority,
     completed: task.completed,
-    due_date: formatDate(task.due_date), // Format the date properly
+    due_date: task.due_date ? formatDate(task.due_date) : null, // Format the date properly
     tags: Array.isArray(task.tags) ? task.tags : undefined
   };
 

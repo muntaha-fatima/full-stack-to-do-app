@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -17,6 +17,7 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ onSendMessage, messages = [] }: ChatInterfaceProps) {
   const [inputValue, setInputValue] = useState('');
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,20 +27,22 @@ export function ChatInterface({ onSendMessage, messages = [] }: ChatInterfacePro
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      formRef.current?.requestSubmit();
+    }
+  };
+
   return (
     <div className="w-full">
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form ref={formRef} onSubmit={handleSubmit} className="flex gap-2">
         <Textarea
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Type your message here... (e.g., 'Add task: Buy groceries')"
           className="resize-none"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit(e as any);
-            }
-          }}
+          onKeyDown={handleKeyDown}
         />
         <Button type="submit" className="whitespace-nowrap">
           Send

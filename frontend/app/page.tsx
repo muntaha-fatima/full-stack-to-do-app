@@ -13,7 +13,6 @@ import {
   Users,
   Calendar,
   Flag,
-  Tag,
   Clock,
   Sparkles,
   ArrowRight,
@@ -23,12 +22,7 @@ import {
   BarChart3,
   Layers,
   Globe,
-  Smartphone,
-  Lock,
-  Award,
-  Download,
-  MessageCircle,
-  Activity
+  Lock
 } from 'lucide-react';
 
 export default function HomePage() {

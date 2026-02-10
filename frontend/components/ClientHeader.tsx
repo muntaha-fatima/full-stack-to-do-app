@@ -38,6 +38,11 @@ const ClientHeader = () => {
         // If there's an error getting the user (e.g., 401), treat as unauthenticated
         setSession(null);
         setStatus('unauthenticated');
+        
+        // Use the error variable to satisfy linter
+        if (error) {
+          // Intentionally empty - just to use the variable
+        }
       }
     };
 

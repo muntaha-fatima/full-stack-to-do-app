@@ -1,4 +1,3 @@
-import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getUserFromServer } from "./server-auth";
 

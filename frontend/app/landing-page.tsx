@@ -13,7 +13,6 @@ import {
   Users,
   Calendar,
   Flag,
-  Tag,
   Clock,
   Sparkles,
   ArrowRight,

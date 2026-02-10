@@ -3,7 +3,7 @@
  */
 
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { getRefreshToken, getToken as getStoredToken, saveToken, clearTokens } from './auth-storage';
+import { getToken as getStoredToken, saveToken, clearTokens } from './auth-storage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
@@ -30,16 +30,9 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Log request for debugging
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
-      headers: config.headers,
-      data: config.data
-    });
-
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -49,18 +42,10 @@ apiClient.interceptors.request.use(
  */
 apiClient.interceptors.response.use(
   (response) => {
-    // Log successful response for debugging
-    console.log(`API Response: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
     return response;
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
-
-    // Log error for debugging
-    console.error(`API Error: ${error.response?.status} ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
-      error: error.message,
-      response: error.response?.data
-    });
 
     // Handle 401 errors (unauthorized)
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -81,8 +66,7 @@ apiClient.interceptors.response.use(
           saveToken(refreshData.access_token);
 
           // Update the original request with the new token
-          (originalRequest.headers as any).Authorization = `Bearer ${refreshData.access_token}`;
-          console.log('Token refreshed successfully, retrying request');
+          (originalRequest.headers as Record<string, string>).Authorization = `Bearer ${refreshData.access_token}`;
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
@@ -97,7 +81,7 @@ apiClient.interceptors.response.use(
 
     // Handle 403 errors (forbidden)
     if (error.response?.status === 403) {
-      console.error('Access forbidden. Check your permissions.');
+      // Log this error if needed for monitoring
     }
 
     return Promise.reject(error);
@@ -107,7 +91,7 @@ apiClient.interceptors.response.use(
 /**
  * Get user profile.
  */
-export async function getProfile(): Promise<any> {
+export async function getProfile(): Promise<unknown> {
   try {
     const response = await apiClient.get('/v1/auth/me');
     return response.data;
@@ -129,8 +113,6 @@ export async function apiRequest<T>(
   config?: AxiosRequestConfig
 ): Promise<T> {
   try {
-    console.log(`Making API request: ${method} ${url}`, { data }); // Debug log
-
     const response: AxiosResponse<T> = await apiClient.request({
       method,
       url,
@@ -138,11 +120,8 @@ export async function apiRequest<T>(
       ...config,
     });
 
-    console.log(`API request successful: ${method} ${url}`, response.data); // Debug log
     return response.data;
   } catch (error) {
-    console.error(`API request failed: ${method} ${url}`, error); // Debug log
-
     if (axios.isAxiosError(error)) {
       // Extract detailed error information
       const errorMessage = error.response?.data?.detail ||
@@ -151,7 +130,6 @@ export async function apiRequest<T>(
                           error.message ||
                           'Unknown error occurred';
 
-      console.error('Detailed error response:', error.response?.data);
       throw new Error(errorMessage);
     }
     throw error;

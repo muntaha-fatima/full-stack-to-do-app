@@ -4,7 +4,7 @@ import { Task } from '@/types/task';
 import { TaskCard } from './task-card';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
-import { ListFilter, PlusCircle, CircleDashed, Clock, CheckCircle2 } from 'lucide-react';
+import { ListFilter, PlusCircle } from 'lucide-react';
 import { TaskListResponse } from '@/types/task';
 
 interface TaskListContentProps {

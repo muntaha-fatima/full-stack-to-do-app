@@ -65,12 +65,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       if (response.ok) {
-        const data = await response.json();
+        // The login response typically includes tokens
+        // In this implementation, tokens are handled via cookies
+        await response.json(); // Consume the response to avoid "unhandled promise rejection" warnings
+        
         // Fetch user info to update context
         const userResponse = await fetch('/api/v1/auth/me', {
           credentials: 'include'
         });
-        
+
         if (userResponse.ok) {
           const userData = await userResponse.json();
           setUser(userData);

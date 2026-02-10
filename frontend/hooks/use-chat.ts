@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { chatApi } from '@/lib/chat';
-import { ChatMessage } from '../../../../shared/types/chat';
+import { ChatMessage } from '@/types/chat';
 
 export function useChat(userId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -29,9 +29,15 @@ export function useChat(userId: string) {
       setMessages(prev => [...prev, userMessage]);
 
       // Send message to backend
+      let conversationId: number | undefined;
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        conversationId = lastMessage ? lastMessage.conversationId : undefined;
+      }
+      
       const response = await chatApi.sendMessage(userId, {
         message,
-        conversationId: messages.length > 0 ? messages[0].conversationId : undefined,
+        conversationId,
       });
 
       // Add assistant response to the UI
@@ -56,10 +62,16 @@ export function useChat(userId: string) {
       setError('Failed to send message. Please try again.');
       
       // Show error in the chat as an assistant message
+      let errorConversationId = 0;
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        errorConversationId = lastMessage ? lastMessage.conversationId : 0;
+      }
+      
       const errorMessage: ChatMessage = {
         id: Date.now(),
         userId: 'assistant',
-        conversationId: messages.length > 0 ? messages[0].conversationId : 0,
+        conversationId: errorConversationId,
         role: 'assistant',
         content: 'Sorry, I encountered an error processing your request. Please try again.',
         createdAt: new Date().toISOString(),

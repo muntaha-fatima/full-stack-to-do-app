@@ -24,7 +24,7 @@ export interface UserActivity {
   action: string;
   entity_type: string;
   entity_id: number;
-  metadata_json: Record<string, any>;
+  metadata_json: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -32,7 +32,7 @@ export interface UserActivityCreate {
   action: string;
   entity_type: string;
   entity_id: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface UserActivityListResponse {

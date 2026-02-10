@@ -2,10 +2,8 @@
 
 import { Task } from '@/types/task';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { TaskListResponse } from '@/types/task';
 import {
-  CalendarIcon,
+  Calendar as CalendarIcon,
   CheckCircle2,
   Flag,
   Pencil,
@@ -96,7 +94,7 @@ export default function TaskList({
               </p>
               {task.due_date && (
                 <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                  <Calendar className="h-3 w-3" />
+                  <CalendarIcon className="h-3 w-3" />
                   <span>{new Date(task.due_date).toLocaleDateString()}</span>
                 </div>
               )}
