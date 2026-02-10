@@ -9,7 +9,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { getTasks, createTask, updateTask, deleteTask } from '@/lib/tasks';
 import type { Task, TaskCreate, TaskStatus } from '@/types/task';
-import { TaskCard } from '@/components/task-card';
 import { TaskForm } from '@/components/task-form';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,16 +20,10 @@ import {
   Clock,
   Circle,
   CheckCircle2,
-  CircleDashed,
   ListFilter,
   Sparkles,
-  Calendar,
-  Flag,
-  Tag,
-  User,
   Search,
-  Filter,
-  MoreHorizontal
+  Filter
 } from 'lucide-react';
 import Link from 'next/link';
 
