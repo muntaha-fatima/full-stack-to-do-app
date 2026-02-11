@@ -4,7 +4,7 @@
 
 import { CategoryCreate, CategoryUpdate, CategoryListResponse, CategoryResponse } from '@/types/category';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/';
 
 /**
  * Get all categories for the current user

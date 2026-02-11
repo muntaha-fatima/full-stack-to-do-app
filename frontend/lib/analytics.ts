@@ -12,7 +12,7 @@ import {
   ProductivityMetricListResponse
 } from '@/types/analytics';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/';
 
 /**
  * Get productivity insights for the current user

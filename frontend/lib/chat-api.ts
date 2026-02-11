@@ -22,7 +22,7 @@ export async function sendChatMessage(userId: string, request: ChatRequest): Pro
   }
 
   // Construct the API URL
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/';
   const apiUrl = `${baseUrl}/api/v1/${userId}/chat`;
 
   try {

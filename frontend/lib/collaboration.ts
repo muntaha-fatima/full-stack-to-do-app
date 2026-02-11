@@ -13,7 +13,7 @@ import {
   TaskCommentListResponse
 } from '@/types/collaboration';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/';
 
 /**
  * Get task assignments

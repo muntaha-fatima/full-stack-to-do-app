@@ -13,7 +13,7 @@ async function testAuth() {
   console.log('Testing authentication with token...');
   
   try {
-    const response = await fetch('http://localhost:8001/api/v1/auth/me', {
+    const response = await fetch('https://shazsabir-to-do-backend.hf.space/api/v1/auth/me', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -29,7 +29,7 @@ async function testAuth() {
       
       // Now test the chat endpoint
       console.log('Testing chat endpoint...');
-      const chatResponse = await fetch('http://localhost:8001/api/v1/' + userData.id + '/chat', {
+      const chatResponse = await fetch('https://shazsabir-to-do-backend.hf.space/api/v1/' + userData.id + '/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

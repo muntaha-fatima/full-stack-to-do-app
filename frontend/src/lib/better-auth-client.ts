@@ -36,7 +36,7 @@ export const signIn = {
     if (!_callbackURL) {
       console.warn('Warning: callbackURL is not provided for social login');
     }
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/${provider}`;
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/'}/api/v1/auth/${provider}`;
   }
 };
 
