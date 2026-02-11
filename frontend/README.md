@@ -71,7 +71,7 @@ cp .env.local.example .env.local
 Edit `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=https://shazsabir-to-do-backend.hf.space/
+NEXT_PUBLIC_API_URL=https://shazsabir-to-do-backend.hf.space
 NODE_ENV=development
 ```
 
@@ -225,7 +225,7 @@ docker-compose up frontend
 
 ### Required
 
-- `NEXT_PUBLIC_API_URL` - Backend API URL (default: https://shazsabir-to-do-backend.hf.space/)
+- `NEXT_PUBLIC_API_URL` - Backend API URL (default: https://shazsabir-to-do-backend.hf.space)
 
 ### Optional
 

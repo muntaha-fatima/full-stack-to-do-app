@@ -34,7 +34,7 @@ export async function getUserFromServer(): Promise<User | null> {
     }
 
     // Make a server-side fetch to the backend to verify the token and get user data
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/'}/api/v1/auth/me`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space'}/api/v1/auth/me`, {
       headers: {
         'Authorization': `Bearer ${authToken}`,
         'Accept': 'application/json',

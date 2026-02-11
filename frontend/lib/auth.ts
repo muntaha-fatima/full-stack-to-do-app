@@ -35,7 +35,7 @@ export interface AuthResponse extends TokenResponse {
 export async function refreshToken(): Promise<TokenResponse | null> {
   try {
     // Refresh token is handled via cookies, so we don't need to send it in the request body
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/'}/api/v1/auth/refresh`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space'}/api/v1/auth/refresh`, {
       method: 'POST',
       credentials: 'include', // Include cookies in the request
       headers: {
@@ -75,7 +75,7 @@ export async function verifyToken(): Promise<boolean> {
       return false;
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/'}/api/v1/auth/me`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space'}/api/v1/auth/me`, {
       credentials: 'include', // Include cookies in the request
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -94,7 +94,7 @@ export async function verifyToken(): Promise<boolean> {
  * Login user and store tokens.
  */
 export async function login(credentials: LoginCredentials): Promise<AuthResponse> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/'}/api/v1/auth/login`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space'}/api/v1/auth/login`, {
     method: 'POST',
     credentials: 'include', // Include cookies in the request
     headers: {
@@ -118,7 +118,7 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
   saveToken(tokenData.access_token);
 
   // Fetch user profile after successful login
-  const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/'}/api/v1/auth/me`, {
+  const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space'}/api/v1/auth/me`, {
     credentials: 'include', // Include cookies in the request
     headers: {
       'Authorization': `Bearer ${tokenData.access_token}`,
@@ -143,7 +143,7 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
  * Register a new user.
  */
 export async function register(registrationData: RegisterData): Promise<{message: string}> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/'}/api/v1/auth/register`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space'}/api/v1/auth/register`, {
     method: 'POST',
     credentials: 'include', // Include cookies in the request
     headers: {
@@ -171,7 +171,7 @@ export async function register(registrationData: RegisterData): Promise<{message
  */
 export async function logout(): Promise<void> {
   try {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/'}/api/v1/auth/logout`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space'}/api/v1/auth/logout`, {
       method: 'POST',
       credentials: 'include', // Include cookies in the request
     });
@@ -222,7 +222,7 @@ export async function getUser(): Promise<User | null> {
       return null;
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/'}/api/v1/auth/me`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space'}/api/v1/auth/me`, {
       credentials: 'include', // Include cookies in the request
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -236,7 +236,7 @@ export async function getUser(): Promise<User | null> {
         const refreshed = await refreshToken();
         if (refreshed) {
           // Retry the request with the new token
-          const retryResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space/'}/api/v1/auth/me`, {
+          const retryResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space'}/api/v1/auth/me`, {
             credentials: 'include', // Include cookies in the request
             headers: {
               'Authorization': `Bearer ${getStoredToken()}`,
