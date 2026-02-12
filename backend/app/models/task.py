@@ -5,7 +5,9 @@ Task model for database.
 from datetime import datetime, timezone
 from enum import Enum as PyEnum
 
-from sqlalchemy import ARRAY, Boolean, DateTime, Enum, ForeignKey, Integer, Interval, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, Interval, String, Text
+from sqlalchemy.types import TypeDecorator, String as SqlString
+import json
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -16,12 +18,36 @@ def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+class JsonEncodedList(TypeDecorator):
+    """Custom type to store a list as JSON string in the database."""
+
+    impl = SqlString
+
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            if isinstance(value, list):
+                return json.dumps(value)
+            return value
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            try:
+                return json.loads(value)
+            except (ValueError, TypeError):
+                # If JSON parsing fails, return the raw value
+                return value
+        return []
+
+
 class TaskStatus(str, PyEnum):
     """Task status enumeration."""
 
-    TODO = "todo"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
+    TODO = "TODO"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
 
 
 class TaskPriority(str, PyEnum):
@@ -58,7 +84,7 @@ class Task(Base):
         Enum(TaskPriority), default=TaskPriority.MEDIUM, nullable=False, index=True
     )
     completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
-    tags: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True, default=list)
+    tags: Mapped[list[str] | None] = mapped_column(JsonEncodedList, nullable=True, default=list)
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     reminder_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     recurrence_pattern: Mapped[RecurrencePattern | None] = mapped_column(Enum(RecurrencePattern), nullable=True)

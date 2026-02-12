@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+__pycache__/
+*.py[cod]
+*.log
+coverage/
+*.db
+*.sqlite
+*.sqlite3
+.env*
+Dockerfile*
+.dockerignore
+*.lcov
+.nyc_output

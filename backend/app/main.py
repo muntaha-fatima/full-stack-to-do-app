@@ -1,13 +1,13 @@
 """
 FastAPI Todo App Backend
 
-A production-ready FastAPI application with async SQLAlchemy, PostgreSQL, and Redis.
+A production-ready FastAPI application with async SQLAlchemy and PostgreSQL.
 """
 
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
@@ -39,15 +39,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware - Allow frontend origin
+# CORS middleware - Allow specific frontend origins only (required when using credentials)
+# Note: Cannot use ["*"] with allow_credentials=True due to browser security restrictions
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],  # Allow frontend origins
+    allow_origins=[
+        "http://localhost:3000",   # Standard Next.js development server
+        "http://127.0.0.1:3000",  # Alternative localhost format
+        # Add other allowed origins as needed for production
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    # Allow all headers including authorization
-    allow_origin_regex="https?://(localhost|127\\.0\\.0\\.1)(:[0-9]+)?",
+    # Expose authorization header to frontend
+    expose_headers=["Access-Control-Allow-Origin", "Authorization"]
 )
 
 
@@ -58,8 +63,13 @@ if settings.ENVIRONMENT == "production":
         allowed_hosts=settings.ALLOWED_HOSTS,
     )
 
-# Include API router
+# Include API router with v1 prefix for all other endpoints
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# For task endpoints, we want them at /api/{user_id}/tasks instead of /api/v1/{user_id}/tasks
+# So we'll include the tasks router separately with the desired prefix
+from app.api.v1.endpoints.tasks import router as tasks_router
+app.include_router(tasks_router, prefix="/api")  # This will make endpoints like /api/{user_id}/tasks
 
 
 @app.get("/")
@@ -87,6 +97,10 @@ async def global_exception_handler(request, exc: Exception) -> JSONResponse:
     """
     Global exception handler for unhandled exceptions.
     """
+    print(f"Global exception handler triggered: {exc}")
+    import traceback
+    traceback.print_exc()
+    
     return JSONResponse(
         status_code=500,
         content={
@@ -96,4 +110,17 @@ async def global_exception_handler(request, exc: Exception) -> JSONResponse:
                 "details": str(exc) if settings.ENVIRONMENT == "development" else None,
             }
         },
+    )
+
+
+# Specific handler for HTTPException
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc: HTTPException) -> JSONResponse:
+    print(f"HTTP Exception Handler triggered: {exc.status_code} - {exc.detail}")
+    import traceback
+    traceback.print_exc()
+    
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail}
     )

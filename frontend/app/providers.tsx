@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
 import { ReactNode, useState } from 'react';
-import { ThemeProvider } from '@/components/theme-provider';
+import { AuthProvider } from '@/components/auth-context';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -30,7 +30,7 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <AuthProvider>
         {children}
         <Toaster
           position="top-right"
@@ -73,7 +73,7 @@ export function Providers({ children }: ProvidersProps) {
           }}
         />
         <ReactQueryDevtools initialIsOpen={false} />
-      </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

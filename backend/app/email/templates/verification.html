@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Email Verification</title>
+</head>
+<body>
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #333;">Welcome to Our Todo App!</h1>
+        <p>Hello,</p>
+        <p>Thank you for registering with our Todo App. Please verify your email address by clicking the button below:</p>
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ verification_link }}" 
+               style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 4px;">
+                Verify Email Address
+            </a>
+        </div>
+        <p>If the button doesn't work, copy and paste this link into your browser:</p>
+        <p style="word-break: break-all;"><a href="{{ verification_link }}">{{ verification_link }}</a></p>
+        <p>This link will expire in 24 hours.</p>
+        <p>If you didn't create an account with us, please ignore this email.</p>
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+        <p style="color: #666; font-size: 14px;">© 2026 Todo App. All rights reserved.</p>
+    </div>
+</body>
+</html>

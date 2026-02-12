@@ -22,7 +22,19 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Add tags column to tasks table."""
-    op.add_column('tasks', sa.Column('tags', postgresql.ARRAY(sa.String()), nullable=True))
+    # Use JSON for SQLite compatibility, ARRAY for PostgreSQL
+    from alembic.context import get_context
+    from sqlalchemy.engine.reflection import Inspector
+
+    # Check if we're using PostgreSQL or SQLite
+    ctx = get_context()
+    dialect_name = ctx.dialect.name
+
+    if dialect_name == 'postgresql':
+        op.add_column('tasks', sa.Column('tags', postgresql.ARRAY(sa.String()), nullable=True))
+    else:
+        # For SQLite, use JSON column to store tags as a JSON array
+        op.add_column('tasks', sa.Column('tags', sa.JSON(), nullable=True))
 
 
 def downgrade() -> None:

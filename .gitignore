@@ -118,3 +118,11 @@ alembic/versions/*.pyc
 
 # Ruff
 .ruff_cache/
+.env
+.env.example
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+*.temp

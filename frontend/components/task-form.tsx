@@ -1,5 +1,5 @@
 /**
- * Task form component for creating and editing tasks.
+ * Task form component for creating and editing tasks with improved accessibility.
  */
 
 'use client';
@@ -8,8 +8,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { TaskCreate } from '@/types/task';
+import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { TagInput } from './tag-input';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255, 'Title is too long'),
@@ -58,11 +58,11 @@ export function TaskForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-lg">
+    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-lg" noValidate>
       {/* Title */}
       <div>
         <label htmlFor="title" className="block text-sm font-medium leading-tight text-foreground mb-sm">
-          Title <span className="text-destructive">*</span>
+          Title <span className="text-destructive" aria-label="(required)">*</span>
         </label>
         <input
           id="title"
@@ -75,10 +75,16 @@ export function TaskForm({
           }`}
           placeholder="Enter task title"
           disabled={isSubmitting}
+          aria-invalid={!!errors.title}
+          aria-describedby={errors.title ? "title-error" : undefined}
         />
         {errors.title && (
-          <p className="mt-sm text-sm leading-tight text-destructive animate-fade-in flex items-center gap-xs">
-            <span className="inline-block w-1 h-1 rounded-full bg-destructive"></span>
+          <p
+            id="title-error"
+            className="mt-sm text-sm leading-tight text-destructive animate-fade-in flex items-center gap-xs"
+            role="alert"
+          >
+            <span className="inline-block w-1 h-1 rounded-full bg-destructive" aria-hidden="true"></span>
             {errors.title.message}
           </p>
         )}
@@ -100,10 +106,16 @@ export function TaskForm({
           }`}
           placeholder="Enter task description"
           disabled={isSubmitting}
+          aria-invalid={!!errors.description}
+          aria-describedby={errors.description ? "description-error" : undefined}
         />
         {errors.description && (
-          <p className="mt-sm text-sm leading-tight text-destructive animate-fade-in flex items-center gap-xs">
-            <span className="inline-block w-1 h-1 rounded-full bg-destructive"></span>
+          <p
+            id="description-error"
+            className="mt-sm text-sm leading-tight text-destructive animate-fade-in flex items-center gap-xs"
+            role="alert"
+          >
+            <span className="inline-block w-1 h-1 rounded-full bg-destructive" aria-hidden="true"></span>
             {errors.description.message}
           </p>
         )}
@@ -119,8 +131,9 @@ export function TaskForm({
             id="status"
             {...register('status')}
             className="block w-full rounded-md border border-border bg-background px-md py-sm text-base leading-normal text-foreground shadow-sm transition-colors duration-fast focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="Select task status"
           >
-            <option value="todo">Todo</option>
+            <option value="todo">To Do</option>
             <option value="in_progress">In Progress</option>
             <option value="completed">Completed</option>
           </select>
@@ -134,6 +147,7 @@ export function TaskForm({
             id="priority"
             {...register('priority')}
             className="block w-full rounded-md border border-border bg-background px-md py-sm text-base leading-normal text-foreground shadow-sm transition-colors duration-fast focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="Select task priority"
           >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
@@ -152,6 +166,7 @@ export function TaskForm({
           type="datetime-local"
           {...register('due_date')}
           className="block w-full rounded-md border border-border bg-background px-md py-sm text-base leading-normal text-foreground shadow-sm transition-colors duration-fast focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label="Select due date and time"
         />
       </div>
 
@@ -164,27 +179,53 @@ export function TaskForm({
           name="tags"
           control={control}
           render={({ field }) => (
-            <TagInput
-              tags={field.value || []}
-              onChange={field.onChange}
-              placeholder="Add tags (press Enter or comma)"
+            <Input
+              id="tags"
+              value={field.value?.join(', ') || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(e.target.value.split(',').map((tag: string) => tag.trim()))}
+              placeholder="Add tags (comma separated)"
+              aria-label="Add tags for the task"
             />
           )}
         />
         {errors.tags && (
-          <p className="mt-sm text-sm leading-tight text-destructive">{errors.tags.message}</p>
+          <p
+            id="tags-error"
+            className="mt-sm text-sm leading-tight text-destructive"
+            role="alert"
+          >
+            {errors.tags.message}
+          </p>
         )}
       </div>
 
       {/* Actions */}
       <div className="flex justify-end gap-sm pt-md border-t border-border">
-        <Button type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={onCancel}
+          disabled={isSubmitting}
+          aria-label="Cancel form submission"
+        >
           Cancel
         </Button>
-        <Button type="submit" variant="primary" disabled={isSubmitting} className="min-w-[120px]">
+        <Button
+          type="submit"
+          variant="default"
+          disabled={isSubmitting}
+          className="min-w-[120px]"
+          aria-label={isSubmitting ? "Saving task..." : "Create task"}
+        >
           {isSubmitting ? (
             <span className="flex items-center gap-sm">
-              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg
+                className="animate-spin h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>

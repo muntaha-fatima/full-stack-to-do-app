@@ -14,7 +14,7 @@ class UserActivityBase(BaseModel):
     action: str = Field(..., max_length=100, description="Action performed (e.g., task_created)")
     entity_type: str = Field(..., max_length=50, description="Entity type (e.g., task, category)")
     entity_id: int | None = Field(None, description="ID of the entity affected")
-    metadata: str | None = Field(None, max_length=500, description="Additional info as JSON string")
+    metadata_json: str | None = Field(None, max_length=500, description="Additional info as JSON string")
 
 
 class UserActivityCreate(UserActivityBase):

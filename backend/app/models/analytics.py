@@ -27,7 +27,7 @@ class UserActivity(Base):
     action: Mapped[str] = mapped_column(String(100), nullable=False)  # e.g., "task_created", "task_completed"
     entity_type: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., "task", "category"
     entity_id: Mapped[int] = mapped_column(Integer, nullable=True)  # ID of the entity affected
-    metadata: Mapped[str | None] = mapped_column(String(500), nullable=True)  # Additional info as JSON string
+    metadata_json: Mapped[str | None] = mapped_column(String(500), nullable=True)  # Additional info as JSON string
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, nullable=False
     )
