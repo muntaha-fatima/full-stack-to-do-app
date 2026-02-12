@@ -20,6 +20,25 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  // Function to check password strength
+  const getPasswordStrength = (password: string) => {
+    if (password.length === 0) return { label: '', score: 0 };
+    
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++; // Has uppercase
+    if (/[a-z]/.test(password)) score++; // Has lowercase
+    if (/\d/.test(password)) score++; // Has number
+    if (/[^A-Za-z0-9]/.test(password)) score++; // Has special character
+    
+    if (score <= 2) return { label: 'Weak', score: 1 };
+    if (score <= 3) return { label: 'Medium', score: 2 };
+    if (score <= 4) return { label: 'Strong', score: 3 };
+    return { label: 'Very Strong', score: 4 };
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({
@@ -33,6 +52,12 @@ export default function SignupPage() {
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+
+    // Check password length (bcrypt limit is 72 bytes)
+    if (formData.password.length > 72) {
+      setError('Password cannot be longer than 72 characters');
       return;
     }
 
@@ -139,7 +164,12 @@ export default function SignupPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-700 text-base font-medium">Password</Label>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="password" className="text-gray-700 text-base font-medium">Password</Label>
+                  <span className={`text-xs ${formData.password.length > 72 ? 'text-red-500' : 'text-gray-500'}`}>
+                    {formData.password.length}/72
+                  </span>
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -151,11 +181,40 @@ export default function SignupPage() {
                     type="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="pl-10 bg-white/50 border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent font-medium py-6 text-base"
+                    className={`pl-10 bg-white/50 border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent font-medium py-6 text-base ${
+                      formData.password.length > 72 ? 'border-red-500' : ''
+                    }`}
                     required
                     disabled={isLoading}
+                    maxLength={72}
                   />
                 </div>
+                
+                {/* Password Strength Indicator */}
+                {formData.password.length > 0 && (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-600">Password strength</span>
+                      <span className={`text-xs font-medium ${
+                        passwordStrength.score <= 1 ? 'text-red-600' :
+                        passwordStrength.score === 2 ? 'text-yellow-600' :
+                        passwordStrength.score === 3 ? 'text-blue-600' : 'text-green-600'
+                      }`}>
+                        {passwordStrength.label}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div 
+                        className={`h-1.5 rounded-full ${
+                          passwordStrength.score <= 1 ? 'bg-red-600' :
+                          passwordStrength.score === 2 ? 'bg-yellow-600' :
+                          passwordStrength.score === 3 ? 'bg-blue-600' : 'bg-green-600'
+                        }`} 
+                        style={{ width: `${passwordStrength.score * 25}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
