@@ -18,6 +18,8 @@ if not exist ".env.local" (
     copy .env.local.example .env.local
 )
 
+
+
 REM Start the frontend development server
 echo Starting frontend server on port 3000...
 npm run dev
