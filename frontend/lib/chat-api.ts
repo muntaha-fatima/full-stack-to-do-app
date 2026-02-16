@@ -21,7 +21,7 @@ export async function sendChatMessage(userId: string, request: ChatRequest): Pro
     throw new Error('No authentication token found');
   }
 
-  // Construct the API URL
+  // Construct the API URL - user ID is extracted from JWT token on backend
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
   const apiUrl = `${baseUrl}/api/v1/${userId}/chat`;
 

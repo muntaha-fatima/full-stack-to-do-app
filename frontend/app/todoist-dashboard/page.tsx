@@ -29,17 +29,17 @@ import {
 function TodoistDashboardContent() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [activeTab, setActiveTab] = useState<'inbox' | 'today' | 'upcoming' | 'completed'>('inbox');
+  const [activeTab, setActiveTab] = useState<'inbox' | 'today' | 'upcoming' | 'completed' | 'project'>('inbox');
+  const [selectedProject, setSelectedProject] = useState<'work' | 'personal' | 'shopping' | null>(null);
   const [quickTaskInput, setQuickTaskInput] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch all tasks (backend status filter doesn't work, so we filter on frontend)
+  // Fetch all tasks
   const { data, isLoading, error } = useQuery({
-    queryKey: ['tasks', activeTab],
+    queryKey: ['tasks', activeTab, selectedProject],
     queryFn: async () => {
       try {
-        // Fetch all tasks without filter
         const result = await getTasks();
         console.log('Tasks fetched:', result);
         return result;
@@ -127,8 +127,15 @@ function TodoistDashboardContent() {
     }
   };
 
-  // Filter tasks based on active tab
+  // Filter tasks based on active tab and selected project
   const filteredTasks = data?.data?.filter(task => {
+    // First filter by project if selected
+    if (activeTab === 'project' && selectedProject) {
+      const taskProject = (task.tags?.[0] || 'personal') as 'work' | 'personal' | 'shopping';
+      if (taskProject !== selectedProject) return false;
+    }
+    
+    // Then filter by tab
     switch(activeTab) {
       case 'inbox':
         // Show all tasks in inbox
@@ -139,6 +146,9 @@ function TodoistDashboardContent() {
         return task.status === 'todo' && task.due_date && new Date(task.due_date) > new Date();
       case 'completed':
         return task.status === 'completed' || task.completed === true;
+      case 'project':
+        // Show all tasks for selected project
+        return true;
       default:
         return true;
     }
@@ -228,19 +238,49 @@ function TodoistDashboardContent() {
               </h3>
               <ul className="space-y-1">
                 <li>
-                  <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-gray-700 hover:bg-gray-100">
+                  <button
+                    onClick={() => {
+                      setActiveTab('project');
+                      setSelectedProject('work');
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left ${
+                      activeTab === 'project' && selectedProject === 'work'
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
                     <Folder className="h-5 w-5" />
                     <span>Work</span>
                   </button>
                 </li>
                 <li>
-                  <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-gray-700 hover:bg-gray-100">
+                  <button
+                    onClick={() => {
+                      setActiveTab('project');
+                      setSelectedProject('personal');
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left ${
+                      activeTab === 'project' && selectedProject === 'personal'
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
                     <Folder className="h-5 w-5" />
                     <span>Personal</span>
                   </button>
                 </li>
                 <li>
-                  <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-gray-700 hover:bg-gray-100">
+                  <button
+                    onClick={() => {
+                      setActiveTab('project');
+                      setSelectedProject('shopping');
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left ${
+                      activeTab === 'project' && selectedProject === 'shopping'
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
                     <Folder className="h-5 w-5" />
                     <span>Shopping</span>
                   </button>
@@ -262,6 +302,9 @@ function TodoistDashboardContent() {
                 {activeTab === 'today' && 'Today'}
                 {activeTab === 'upcoming' && 'Upcoming'}
                 {activeTab === 'completed' && 'Completed'}
+                {activeTab === 'project' && selectedProject === 'work' && 'Work'}
+                {activeTab === 'project' && selectedProject === 'personal' && 'Personal'}
+                {activeTab === 'project' && selectedProject === 'shopping' && 'Shopping'}
               </h1>
             </div>
 

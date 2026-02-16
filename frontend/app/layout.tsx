@@ -31,7 +31,6 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider>
           <div className="relative min-h-screen">
-            {/* Enhanced smoky background effect */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-gradient-to-r from-pink-300/25 to-purple-300/20 blur-3xl -z-10"></div>
               <div className="absolute top-3/4 right-1/3 w-72 h-72 rounded-full bg-gradient-to-r from-purple-300/20 to-pink-300/20 blur-3xl -z-10"></div>

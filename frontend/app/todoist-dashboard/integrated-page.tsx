@@ -42,7 +42,8 @@ interface Message {
 function TodoistDashboardContent() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [activeTab, setActiveTab] = useState<'inbox' | 'today' | 'upcoming' | 'completed'>('inbox');
+  const [activeTab, setActiveTab] = useState<'inbox' | 'today' | 'upcoming' | 'completed' | 'project'>('inbox');
+  const [selectedProject, setSelectedProject] = useState<'work' | 'personal' | 'shopping' | null>(null);
   const [quickTaskInput, setQuickTaskInput] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [chatInput, setChatInput] = useState('');
@@ -84,12 +85,11 @@ function TodoistDashboardContent() {
     }
   }, [messages, activeUserId]);
 
-  // Fetch all tasks (backend status filter doesn't work, so we filter on frontend)
+  // Fetch all tasks
   const { data, isLoading, error } = useQuery({
-    queryKey: ['tasks', activeTab],
+    queryKey: ['tasks', activeTab, selectedProject],
     queryFn: async () => {
       try {
-        // Fetch all tasks without filter
         const result = await getTasks();
         console.log('Tasks fetched:', result);
         return result;
@@ -226,8 +226,15 @@ function TodoistDashboardContent() {
     }
   };
 
-  // Filter tasks based on active tab
+  // Filter tasks based on active tab and selected project
   const filteredTasks = data?.data?.filter(task => {
+    // First filter by project if selected
+    if (activeTab === 'project' && selectedProject) {
+      const taskProject = (task.tags?.[0] || 'personal') as 'work' | 'personal' | 'shopping';
+      if (taskProject !== selectedProject) return false;
+    }
+    
+    // Then filter by tab
     switch(activeTab) {
       case 'inbox':
         // Show all tasks in inbox
@@ -238,6 +245,9 @@ function TodoistDashboardContent() {
         return task.status === 'todo' && task.due_date && new Date(task.due_date) > new Date();
       case 'completed':
         return task.status === 'completed' || task.completed === true;
+      case 'project':
+        // Show all tasks for selected project
+        return true;
       default:
         return true;
     }
@@ -356,6 +366,9 @@ function TodoistDashboardContent() {
                 {activeTab === 'today' && 'Today'}
                 {activeTab === 'upcoming' && 'Upcoming'}
                 {activeTab === 'completed' && 'Completed'}
+                {activeTab === 'project' && selectedProject === 'work' && 'Work'}
+                {activeTab === 'project' && selectedProject === 'personal' && 'Personal'}
+                {activeTab === 'project' && selectedProject === 'shopping' && 'Shopping'}
               </h1>
             </div>
 
