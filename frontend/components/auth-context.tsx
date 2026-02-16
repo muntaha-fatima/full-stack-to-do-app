@@ -62,6 +62,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     checkAuthStatus();
   }, []);
 
+  // Effect to handle token expiration in the background
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const interval = setInterval(async () => {
+      // Periodically check if the token is still valid
+      const isValid = await checkAuth();
+      if (!isValid && user) {
+        // If the token is no longer valid but we still have a user in state, log out
+        setUser(null);
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [user, isInitialized]);
+
   const login = async (email_or_username: string, password: string) => {
     setLoading(true);
     try {

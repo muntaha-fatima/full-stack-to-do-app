@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/modal';
 import { TaskForm } from '@/components/task-form';
 import { TaskListSimple } from '@/components/task-list-simple';
+import ProtectedRoute from '@/components/protected-route';
 import {
   Inbox,
   Calendar,
@@ -25,7 +26,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 
-export default function TodoistDashboard() {
+function TodoistDashboardContent() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [activeTab, setActiveTab] = useState<'inbox' | 'today' | 'upcoming' | 'completed'>('inbox');
@@ -360,5 +361,13 @@ export default function TodoistDashboard() {
         </Modal>
       )}
     </div>
+  );
+}
+
+export default function TodoistDashboard() {
+  return (
+    <ProtectedRoute>
+      <TodoistDashboardContent />
+    </ProtectedRoute>
   );
 }

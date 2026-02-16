@@ -5,7 +5,7 @@
 import { http, HttpResponse } from 'msw';
 import type { Task, TaskCreate } from '@/types/task';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://shazsabir-to-do-backend.hf.space';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
 // Mock task data
 let mockTasks: Task[] = [

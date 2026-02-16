@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Modal } from '@/components/modal';
 import { TaskListSimple } from '@/components/task-list-simple';
+import ProtectedRoute from '@/components/protected-route';
 import {
   PlusCircle,
   Clock,
@@ -27,7 +28,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function Home() {
+function TodoDashboardContent() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
@@ -430,5 +431,13 @@ export default function Home() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function TodoDashboard() {
+  return (
+    <ProtectedRoute>
+      <TodoDashboardContent />
+    </ProtectedRoute>
   );
 }

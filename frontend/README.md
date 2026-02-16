@@ -240,6 +240,14 @@ docker-compose up frontend
 
 ## Troubleshooting
 
+### Authentication Issues
+
+If you're experiencing issues with authentication or being redirected unexpectedly:
+
+1. **Force logout**: Visit [http://localhost:3000/api/force-logout](http://localhost:3000/api/force-logout) to clear all authentication cookies
+2. **Clear browser cookies**: Manually clear cookies for localhost:3000 in your browser settings
+3. **Private browsing**: Use an incognito/private browsing window to test authentication
+
 ### API Connection Issues
 
 1. Verify backend is running: https://shazsabir-to-do-backend.hf.space/health

@@ -14,6 +14,7 @@ import { Modal } from '@/components/modal';
 import { TaskForm } from '@/components/task-form';
 import { TaskListSimple } from '@/components/task-list-simple';
 import ReactMarkdown from 'react-markdown';
+import ProtectedRoute from '@/components/protected-route';
 import {
   Inbox,
   Calendar,
@@ -38,7 +39,7 @@ interface Message {
   createdAt: string;
 }
 
-export default function TodoistDashboard() {
+function TodoistDashboardContent() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [activeTab, setActiveTab] = useState<'inbox' | 'today' | 'upcoming' | 'completed'>('inbox');
@@ -548,5 +549,13 @@ export default function TodoistDashboard() {
         </Modal>
       )}
     </div>
+  );
+}
+
+export default function TodoistDashboard() {
+  return (
+    <ProtectedRoute>
+      <TodoistDashboardContent />
+    </ProtectedRoute>
   );
 }
