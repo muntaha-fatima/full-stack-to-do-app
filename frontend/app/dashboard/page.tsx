@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth-context';
 import { useEffect } from 'react';
-import Home from '../todo-dashboard';
+import TodoistDashboard from '../todoist-dashboard/page';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -51,7 +51,7 @@ export default function DashboardPage() {
           Sign Out
         </Button>
       </div>
-      <Home />
+      <TodoistDashboard />
     </div>
   );
 }

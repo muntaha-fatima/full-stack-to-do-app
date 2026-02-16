@@ -3,7 +3,6 @@
  */
 
 import { apiRequest } from './api-client';
-import { getUser } from './auth';
 import type {
   Task,
   TaskCreate,
@@ -45,13 +44,6 @@ export async function getTasks(params?: {
   status?: TaskStatus;
   completed?: boolean;
 }): Promise<TaskListResponse> {
-  // Get the current user's ID
-  const user = await getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-  const userId = user.id;
-
   const queryParams = new URLSearchParams();
 
   if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
@@ -60,7 +52,7 @@ export async function getTasks(params?: {
   if (params?.completed !== undefined)
     queryParams.append('completed', params.completed.toString());
 
-  const url = `/api/${userId}/tasks${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const url = `/api/v1/tasks${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   return apiRequest<TaskListResponse>('GET', url);
 }
 
@@ -68,27 +60,13 @@ export async function getTasks(params?: {
  * Fetch a single task by ID for the current user.
  */
 export async function getTask(taskId: number): Promise<Task> {
-  // Get the current user's ID
-  const user = await getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-  const userId = user.id;
-
-  return apiRequest<Task>('GET', `/api/${userId}/tasks/${taskId}`);
+  return apiRequest<Task>('GET', `/api/v1/tasks/${taskId}`);
 }
 
 /**
  * Create a new task for the current user.
  */
 export async function createTask(task: TaskCreate): Promise<Task> {
-  // Get the current user's ID
-  const user = await getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-  const userId = user.id;
-
   // Validate required fields
   if (!task.title || typeof task.title !== 'string' || task.title.trim().length === 0) {
     throw new Error('Task title is required and must be a non-empty string');
@@ -104,26 +82,13 @@ export async function createTask(task: TaskCreate): Promise<Task> {
     tags: Array.isArray(task.tags) ? task.tags : []
   };
 
-
-  // Make sure we have a valid user ID
-  if (!userId) {
-    throw new Error('User ID is required to create a task');
-  }
-
-  return apiRequest<Task>('POST', `/api/${userId}/tasks`, sanitizedTask);
+  return apiRequest<Task>('POST', `/api/v1/tasks`, sanitizedTask);
 }
 
 /**
  * Update an existing task for the current user.
  */
 export async function updateTask(taskId: number, task: TaskUpdate): Promise<Task> {
-  // Get the current user's ID
-  const user = await getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-  const userId = user.id;
-
   // Sanitize and normalize the task data with proper date formatting
   const sanitizedTask: TaskUpdate = {
     title: task.title ? task.title.trim() : undefined,
@@ -135,33 +100,19 @@ export async function updateTask(taskId: number, task: TaskUpdate): Promise<Task
     tags: Array.isArray(task.tags) ? task.tags : undefined
   };
 
-  return apiRequest<Task>('PUT', `/api/${userId}/tasks/${taskId}`, sanitizedTask);
+  return apiRequest<Task>('PUT', `/api/v1/tasks/${taskId}`, sanitizedTask);
 }
 
 /**
  * Delete a task for the current user.
  */
 export async function deleteTask(taskId: number): Promise<void> {
-  // Get the current user's ID
-  const user = await getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-  const userId = user.id;
-
-  return apiRequest<void>('DELETE', `/api/${userId}/tasks/${taskId}`);
+  return apiRequest<void>('DELETE', `/api/v1/tasks/${taskId}`);
 }
 
 /**
  * Toggle completion status of a task for the current user.
  */
 export async function toggleTaskCompletion(taskId: number): Promise<Task> {
-  // Get the current user's ID
-  const user = await getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-  const userId = user.id;
-
-  return apiRequest<Task>('PATCH', `/api/${userId}/tasks/${taskId}/complete`);
+  return apiRequest<Task>('PATCH', `/api/v1/tasks/${taskId}/complete`);
 }

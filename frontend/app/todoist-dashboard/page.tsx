@@ -34,23 +34,22 @@ function TodoistDashboardContent() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch tasks based on active tab
+  // Fetch all tasks (backend status filter doesn't work, so we filter on frontend)
   const { data, isLoading, error } = useQuery({
     queryKey: ['tasks', activeTab],
-    queryFn: () => {
-      switch(activeTab) {
-        case 'inbox':
-          return getTasks({ status: 'todo' });
-        case 'today':
-          return getTasks({ status: 'todo' });
-        case 'upcoming':
-          return getTasks({ status: 'todo' });
-        case 'completed':
-          return getTasks({ status: 'completed' });
-        default:
-          return getTasks({ status: 'todo' });
+    queryFn: async () => {
+      try {
+        // Fetch all tasks without filter
+        const result = await getTasks();
+        console.log('Tasks fetched:', result);
+        return result;
+      } catch (err) {
+        console.error('Error fetching tasks:', err);
+        throw err;
       }
     },
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 
   // Create task mutation
@@ -132,17 +131,23 @@ function TodoistDashboardContent() {
   const filteredTasks = data?.data?.filter(task => {
     switch(activeTab) {
       case 'inbox':
-        return task.status === 'todo';
+        // Show all tasks in inbox
+        return true;
       case 'today':
-        return task.status === 'todo' && task.due_date && new Date(task.due_date) <= new Date();
+        return task.status === 'todo' && task.due_date && new Date(task.due_date).toDateString() === new Date().toDateString();
       case 'upcoming':
         return task.status === 'todo' && task.due_date && new Date(task.due_date) > new Date();
       case 'completed':
-        return task.completed;
+        return task.status === 'completed' || task.completed === true;
       default:
         return true;
     }
   }) || [];
+
+  // Debug: Log all tasks and filtered tasks
+  console.log('All tasks:', data?.data);
+  console.log('Filtered tasks for', activeTab, ':', filteredTasks);
+  console.log('Active tab:', activeTab);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
