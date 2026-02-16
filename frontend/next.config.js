@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true, // Enable app directory for App Router
-  },
   reactStrictMode: true,
   swcMinify: true,
   env: {

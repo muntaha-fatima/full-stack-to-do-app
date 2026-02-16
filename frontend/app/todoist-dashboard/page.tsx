@@ -41,10 +41,8 @@ function TodoistDashboardContent() {
     queryFn: async () => {
       try {
         const result = await getTasks();
-        console.log('Tasks fetched:', result);
         return result;
       } catch (err) {
-        console.error('Error fetching tasks:', err);
         throw err;
       }
     },
@@ -138,7 +136,6 @@ function TodoistDashboardContent() {
     // Then filter by tab
     switch(activeTab) {
       case 'inbox':
-        // Show all tasks in inbox
         return true;
       case 'today':
         return task.status === 'todo' && task.due_date && new Date(task.due_date).toDateString() === new Date().toDateString();
@@ -147,17 +144,11 @@ function TodoistDashboardContent() {
       case 'completed':
         return task.status === 'completed' || task.completed === true;
       case 'project':
-        // Show all tasks for selected project
         return true;
       default:
         return true;
     }
   }) || [];
-
-  // Debug: Log all tasks and filtered tasks
-  console.log('All tasks:', data?.data);
-  console.log('Filtered tasks for', activeTab, ':', filteredTasks);
-  console.log('Active tab:', activeTab);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

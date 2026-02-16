@@ -1,21 +1,11 @@
 import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-
-// Placeholder for OpenAI ChatKit - in a real implementation, this would be imported from @openai/chat-components
-interface ChatMessage {
-  id: number;
-  role: 'user' | 'assistant';
-  content: string;
-  createdAt: string;
-}
 
 interface ChatInterfaceProps {
   onSendMessage: (message: string) => void;
-  messages?: ChatMessage[];
 }
 
-export function ChatInterface({ onSendMessage, messages = [] }: ChatInterfaceProps) {
+export function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
   const [inputValue, setInputValue] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
 

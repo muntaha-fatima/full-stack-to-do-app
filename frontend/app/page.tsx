@@ -882,7 +882,7 @@ export default function HomePage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button asChild size="xl" className="bg-white text-purple-600 hover:bg-gray-100 px-12 py-8 text-xl shadow-2xl hover:shadow-white/25 transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 group">
+              <Button asChild size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-12 py-8 text-xl shadow-2xl hover:shadow-white/25 transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 group">
                 <Link href="/register" className="flex items-center justify-center">
                   <Sparkles className="mr-2 h-5 w-5" />
                   Get Started Free

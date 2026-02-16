@@ -43,7 +43,7 @@ function TodoistDashboardContent() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [activeTab, setActiveTab] = useState<'inbox' | 'today' | 'upcoming' | 'completed' | 'project'>('inbox');
-  const [selectedProject, setSelectedProject] = useState<'work' | 'personal' | 'shopping' | null>(null);
+  const [selectedProject, _setSelectedProject] = useState<'work' | 'personal' | 'shopping' | null>(null);
   const [quickTaskInput, setQuickTaskInput] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [chatInput, setChatInput] = useState('');
@@ -91,10 +91,8 @@ function TodoistDashboardContent() {
     queryFn: async () => {
       try {
         const result = await getTasks();
-        console.log('Tasks fetched:', result);
         return result;
       } catch (err) {
-        console.error('Error fetching tasks:', err);
         throw err;
       }
     },
@@ -107,7 +105,6 @@ function TodoistDashboardContent() {
     mutationFn: createTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      setQuickTaskInput('');
       toast.success('Task created successfully!');
     },
     onError: (_error) => {
